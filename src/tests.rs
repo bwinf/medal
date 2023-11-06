@@ -1930,3 +1930,87 @@ fn check_group_csv_upload_and_login() {
             assert!(content.contains("Gabi Musterfrau"));
         })
 }
+
+#[test]
+fn check_group_csv_upload_update() {
+    run(|conn| {
+            addsimpleuser(conn, "testusr".to_string(), "testpw".to_string(), true, false);
+        },
+        |port| {
+            let client = reqwest::Client::builder().cookie_store(true)
+                                                   .redirect(reqwest::RedirectPolicy::none())
+                                                   .build()
+                                                   .unwrap();
+
+            let resp = login(port, &client, "testusr", "testpw");
+            assert_eq!(resp.status(), StatusCode::FOUND);
+
+            let mut resp = client.pget(port, "").send().unwrap();
+            assert_eq!(resp.status(), StatusCode::OK);
+
+            let content = resp.text().unwrap();
+            assert!(content.contains("[Lehrer]"));
+            assert!(content.contains("Gruppenverwaltung"));
+
+            let mut resp = client.pget(port, "group/csv").send().unwrap();
+            assert_eq!(resp.status(), StatusCode::OK);
+
+            let content = resp.text().unwrap();
+            assert!(content.contains("Gruppen per CSV-Upload anlegen"));
+
+            let group_data  = "[[\"7a\",\"7\",\"Gabi\",\"Musterfrau\",\"m\"],[\"7a\",\"7\",\"Max\",\"Mustermann\",\"f\"],[\"Info19\",\"12\",\"Ferdinand\",\"Fallbeispiel\",\"d\"]]";
+
+            let pos = content.find("type=\"hidden\" name=\"csrf_token\" value=\"").expect("CSRF-Token not found");
+            let csrf = &content[pos + 39..pos + 49];
+
+            let params = [("group_data", group_data), ("gymnasium", "g8"), ("csrf_token", csrf)];
+            let resp = client.ppost(port, "group/csv").form(&params).send().unwrap();
+            assert_eq!(resp.status(), StatusCode::FOUND);
+
+            let mut resp = client.pget(port, "group/").send().unwrap();
+            let content = resp.text().unwrap();
+            assert!(!content.contains("WrongGroupname"));
+
+            content.find("<td><a href=\"/group/1\">7a</a></td>").expect("Group not found");
+
+            let mut resp = client.pget(port, "group/1").send().unwrap();
+            let content = resp.text().unwrap();
+
+            let pos = content.find("<td><a href=\"/admin/user/2\">Gabi Musterfrau</a></td>").expect("User not found");
+            let logincode = &content[pos + 66..pos + 76];
+            let grade = &content[pos + 95..pos + 96];
+
+            assert_eq!(grade, "7");
+
+            let mut resp = client.pget(port, "group/csv").send().unwrap();
+            assert_eq!(resp.status(), StatusCode::OK);
+
+            let content = resp.text().unwrap();
+            assert!(content.contains("Gruppen per CSV-Upload anlegen"));
+
+            let group_data  = "[[\"7a\",\"3\",\"Gabi\",\"Musterfrau\",\"m\"],[\"7a\",\"3\",\"Max\",\"Mustermann\",\"f\"],[\"Info19\",\"11\",\"Ferdinand\",\"Fallbeispiel\",\"d\"]]";
+
+            let pos = content.find("type=\"hidden\" name=\"csrf_token\" value=\"").expect("CSRF-Token not found");
+            let csrf = &content[pos + 39..pos + 49];
+
+            let params = [("group_data", group_data), ("gymnasium", "g8"), ("csrf_token", csrf)];
+            let resp = client.ppost(port, "group/csv").form(&params).send().unwrap();
+            assert_eq!(resp.status(), StatusCode::FOUND);
+
+            let mut resp = client.pget(port, "group/").send().unwrap();
+            let content = resp.text().unwrap();
+            assert!(!content.contains("WrongGroupname"));
+
+            content.find("<td><a href=\"/group/1\">7a</a></td>").expect("Group not found");
+
+            let mut resp = client.pget(port, "group/1").send().unwrap();
+            let content = resp.text().unwrap();
+
+            let pos = content.find("<td><a href=\"/admin/user/2\">Gabi Musterfrau</a></td>").expect("User not found");
+            let logincode2 = &content[pos + 66..pos + 76];
+            let grade2 = &content[pos + 95..pos + 96];
+
+            assert_eq!(grade2, "3");
+            assert_eq!(logincode2, logincode);
+        })
+}
