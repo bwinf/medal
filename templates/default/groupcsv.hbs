@@ -111,23 +111,23 @@ function fileLoadHandler(event) {
       }
       continue;
     }
-      
+
     // Check if line is valid:
-    var line_valid = true;  
+    var line_valid = true;
     for (var j = 0; j < 5; j++) {
       // Skip line if any name is longer than 128 chars
       if (data[i][j].length > 128) {
         break;
-        line_valid = false; 
+        line_valid = false;
       }
     }
     if (!line_valid) {
       skiplines++;
-      continue;   
+      continue;
     }
-      
+
     data[i][1] = parseInt(data[i][1]);
-      
+
     if (!(data[i][1] >= 0 && data[i][1] <= 13)) {
       skiplines++;
       continue;
@@ -156,7 +156,7 @@ function fileLoadHandler(event) {
     for (var j = 0; j < 5; j++) {
       acc.push(data[i][j]);
     }
-      
+
     // Everything looks fine, lets create some nodes!
     var tr = document.createElement("tr");
     tr.id = "tr" + counter;
@@ -222,8 +222,7 @@ function clearEverything() {
 
 function copyDataBeforeSend() {
   var isg9 = document.getElementById("g9").checked;
-  console.log(isg9);    
-      
+
   // Copy data of non-removed accounts into array to send
   var send_data = [];
     for (var i = 0; i < account_data.length; i++) {
@@ -252,8 +251,8 @@ function copyDataBeforeSend() {
     <h1>Gruppen per CSV-Upload anlegen</h1>
     <p><a href="/">Zur Startseite</a></p>
     <p><a href=".">Zur Gruppenübersicht</a></p>
-      
-    <p>Hier können Sie Gruppen und Accounts über eine CSV-Datei anlegen. Schieben Sie dazu die CSV-Datei auf das grüne Feld.</p>
+
+    <p>Hier können Sie Gruppen und Accounts über eine CSV-Datei anlegen oder updaten. Schieben Sie dazu die CSV-Datei auf das grüne Feld.</p>
 
     <p>Die hochzuladene CSV-Datei muss den folgenden Kriterien genügen:
       <ul>
@@ -279,9 +278,14 @@ Gruppenname,Stufe,Vorname,Nachname,Geschlecht
 Info19,12,Ferdinand,Fallbeispiel,d</pre>
     </p>
 
-    <p>Im Anschluss auf den Upload haben Sie hier noch die Möglichkeit einzelne Zeilen zu löschen (z. B. Kopfzeilen) bevor Sie die Gruppen anlegen. Angelegte Gruppen lassen sich nicht mehr löschen.</p>
+    <p>Im Anschluss auf den Upload haben Sie hier noch die Möglichkeit einzelne Zeilen zu löschen (z. B. Kopfzeilen) bevor Sie die Gruppen anlegen.</p>
+
+    <p><b>Neu:</b> Ab sofort können Gruppen die mit diesem CSV-Upload angelegt wurden auch darüber aktualisiert oder erweitert werden.
+    Dieselbe CSV-Datei kann mehrfach hochgeladen werden und Aktualisierung werden übernommen ohne alle Mitglieder neu anzulegen.
+    Gruppen werden dabei an dem Gruppennamen identifiziert.
+    Innerhalb einer Gruppe werden Mitglieder an Vor- und Nachnamen identifiziert.</p>
   </div>
-   
+
   <div id="drop_zone">
     <p>CSV-Datei hier hineinschieben …</p>
   </div>
@@ -292,7 +296,7 @@ Info19,12,Ferdinand,Fallbeispiel,d</pre>
         <input type="hidden" name="group_data" id="send_data">
         <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
         <input type="radio" name="gymnasium" value="g8" id="g8"> <label for="g8"> G8 </label> <input type="radio" name="gymnasium" value="g9" id="g9"> <label for="g9"> G9 </label><br>&nbsp;<br>
-        <input type="submit" style=" color:blue;" value="Gruppen erstellen"></input><br>
+        <input type="submit" style=" color:blue;" value="Gruppen erstellen oder updaten"></input><br>
       </form>
       <p>Bitte prüfen Sie vorher, dass alle Daten korrekt sind und Umlaute richtig dargestellt werden. Löschen Sie eventuell vorhandene Kopfzeilen. Kein Name darf länger als 100 Zeichen lang sein.
         <br>Die Auswahl G8/G9 betrifft nur Schülerinnen und Schüler ab Jahrgangsstufe 11.</p>

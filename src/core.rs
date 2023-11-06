@@ -1230,7 +1230,7 @@ pub fn upload_groups<T: MedalConnection>(conn: &T, session_token: &str, csrf_tok
     for line in v {
         if name != line[0] {
             if name != "" {
-                conn.create_group_with_users(group);
+                conn.update_or_create_group_with_users(group);
             }
             name = line[0].clone();
 
@@ -1269,7 +1269,7 @@ pub fn upload_groups<T: MedalConnection>(conn: &T, session_token: &str, csrf_tok
 
         group.members.push(user);
     }
-    conn.create_group_with_users(group);
+    conn.update_or_create_group_with_users(group);
 
     Ok(())
 }

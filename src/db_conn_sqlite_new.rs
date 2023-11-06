@@ -736,41 +736,61 @@ impl MedalConnection for Connection {
         Ok(session_token)
     }
 
-    fn create_group_with_users(&self, mut group: Group) {
-        // Generate group ID:
-        group.save(self);
+    fn update_or_create_group_with_users(&self, mut group: Group) {
+        if let Ok(Some(id)) = self.query_map_one("SELECT id FROM usergroup WHERE name = ?1 AND tag = ?1 AND admin = ?2",
+                                                 &[&group.name, &group.admin],
+                                                 |row| -> i32 { row.get(0) })
+        {
+            // Set group ID:
+            group.set_id(id);
+        } else {
+            // Generate group ID:
+            group.save(self);
+        }
 
         let now = time::get_time();
 
         for user in group.members {
-            let csrf_token = helpers::make_csrf_token();
+            if let Ok(Some(id)) =
+                self.query_map_one("SELECT id FROM session WHERE firstname = ?1 AND lastname = ?2 AND managed_by = ?3",
+                                   &[&user.firstname, &user.lastname, &group.id],
+                                   |row| -> i32 { row.get(0) })
+            {
+                // Update existing user:
+                let query = "UPDATE session SET grade = ?2, sex = ?3 WHERE id = ?1";
+                self.execute(query, &[&id, &user.grade, &user.sex]).unwrap();
+            } else {
+                // Generate new user:
+                let csrf_token = helpers::make_csrf_token();
 
-            let mut logincode = String::new();
-            for i in 0..10 {
-                if i == 9 {
-                    panic!("ERROR: Too many logincode collisions! Give up ...");
+                let mut logincode = String::new();
+                for i in 0..10 {
+                    if i == 9 {
+                        panic!("ERROR: Too many logincode collisions! Give up ...");
+                    }
+                    logincode = helpers::make_logincode();
+                    if !self.code_exists(&logincode) {
+                        break;
+                    }
+                    println!("WARNING: Logincode collision! Retrying ...");
                 }
-                logincode = helpers::make_logincode();
-                if !self.code_exists(&logincode) {
-                    break;
-                }
-                println!("WARNING: Logincode collision! Retrying ...");
+
+                let query =
+                    "INSERT INTO session (firstname, lastname, csrf_token, account_created, logincode, grade, sex,
+                                          is_teacher, managed_by)
+                     VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)";
+                self.execute(query,
+                             &[&user.firstname,
+                               &user.lastname,
+                               &csrf_token,
+                               &now,
+                               &logincode,
+                               &user.grade,
+                               &user.sex,
+                               &false,
+                               &group.id])
+                    .unwrap();
             }
-
-            let query = "INSERT INTO session (firstname, lastname, csrf_token, account_created, logincode, grade, sex,
-                                              is_teacher, managed_by)
-                         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)";
-            self.execute(query,
-                         &[&user.firstname,
-                           &user.lastname,
-                           &csrf_token,
-                           &now,
-                           &logincode,
-                           &user.grade,
-                           &user.sex,
-                           &false,
-                           &group.id])
-                .unwrap();
         }
     }
 

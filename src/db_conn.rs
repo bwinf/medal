@@ -77,7 +77,7 @@ pub trait MedalConnection {
                      _: (bool, bool, &str, &str, Option<i32>))
                      -> Result<(String, Option<time::Timespec>), ()>;
     fn create_user_with_groupcode(&self, session: Option<&str>, groupcode: &str) -> Result<String, ()>;
-    fn create_group_with_users(&self, group: Group);
+    fn update_or_create_group_with_users(&self, group: Group);
 
     /// Logs out the user identified by session token `session` by resetting the uesr's session token in the database
     /// to `NULL`.
