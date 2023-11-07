@@ -82,7 +82,7 @@ pub struct Group {
     pub name: String,
     pub groupcode: String,
     pub tag: String,
-    pub admin: i32,
+    pub admins: Vec<i32>,
     pub members: Vec<SessionUser>,
 }
 

@@ -144,12 +144,18 @@ impl MedalObject<Connection> for Group {
         match self.get_id() {
             Some(_id) => unimplemented!(),
             None => {
-                let query = "INSERT INTO usergroup (name, groupcode, tag, admin, group_created)
-                             VALUES ($1, $2, $3, $4, $5)";
+                let query = "INSERT INTO usergroup (name, groupcode, tag, group_created)
+                             VALUES ($1, $2, $3, $4)";
                 let now = time::get_time();
                 println!("{:?}", now);
-                conn.execute(query, &[&self.name, &self.groupcode, &self.tag, &self.admin, &now]).unwrap();
+                conn.execute(query, &[&self.name, &self.groupcode, &self.tag, &now]).unwrap();
                 self.set_id(conn.get_last_id().unwrap());
+
+                let query = "INSERT INTO usergroup_admin (usergroup, session)
+                             VALUES ($1, $2)";
+                for admin in &self.admins {
+                    conn.execute(query, &[&self.get_id(), admin]).unwrap();
+                }
             }
         }
     }
@@ -556,18 +562,22 @@ impl MedalConnection for Connection {
             None => return Some((session, None)),
         };
 
-        let query = "SELECT name, groupcode, tag, admin
+        let query = "SELECT name, groupcode, tag
                      FROM usergroup
                      WHERE id = $1";
         let res = self.query_map_one(query, &[&group_id], |row| Group { id: Some(group_id),
                                                                         name: row.get(0),
                                                                         groupcode: row.get(1),
                                                                         tag: row.get(2),
-                                                                        admin: row.get(3),
+                                                                        admins: Vec::new(),
                                                                         members: Vec::new() })
                       .ok()?;
         match res {
-            Some(group) => Some((session, Some(group))),
+            Some(mut group) => {
+                let query = "SELECT session FROM usergroup_admin WHERE usergroup = $1 ORDER BY session";
+                group.admins = self.query_map_many(query, &[&group_id], |row| row.get(0)).unwrap();
+                Some((session, Some(group)))
+            }
             _ => Some((session, None)),
         }
     }
@@ -736,11 +746,14 @@ impl MedalConnection for Connection {
         Ok(session_token)
     }
 
-    fn update_or_create_group_with_users(&self, mut group: Group) {
-        if let Ok(Some(id)) = self.query_map_one("SELECT id FROM usergroup WHERE name = $1 AND tag = $1 AND admin = $2",
-                                                 &[&group.name, &group.admin],
-                                                 |row| -> i32 { row.get(0) })
-        {
+    fn update_or_create_group_with_users(&self, mut group: Group, admin: i32) {
+        let query = "SELECT id
+                     FROM usergroup
+                     JOIN usergroup_admin ON usergroup.id = usergroup_admin.usergroup
+                     WHERE name = $1
+                     AND tag = $1
+                     AND usergroup_admin.session = $2";
+        if let Ok(Some(id)) = self.query_map_one(query, &[&group.name, &admin], |row| -> i32 { row.get(0) }) {
             // Set group ID:
             group.set_id(id);
         } else {
@@ -976,7 +989,7 @@ impl MedalConnection for Connection {
                              name: row.get(5),
                              groupcode: row.get(6),
                              tag: row.get(7),
-                             admin: session_id,
+                             admins: Vec::new(),
                              members: Vec::new() },
                      UserInfo { id: row.get(8),
                                 username: row.get(9),
@@ -1755,12 +1768,13 @@ impl MedalConnection for Connection {
     fn get_groups(&self, session_id: i32) -> Vec<Group> {
         let query = "SELECT id, name, groupcode, tag
                      FROM usergroup
-                     WHERE admin = $1";
+                     JOIN usergroup_admin ON usergroup.id = usergroup_admin.usergroup
+                     WHERE usergroup_admin.session = $1";
         self.query_map_many(query, &[&session_id], |row| Group { id: Some(row.get(0)),
                                                                  name: row.get(1),
                                                                  groupcode: row.get(2),
                                                                  tag: row.get(3),
-                                                                 admin: session_id,
+                                                                 admins: Vec::new(),
                                                                  members: Vec::new() })
             .unwrap()
     }
@@ -1768,16 +1782,21 @@ impl MedalConnection for Connection {
         unimplemented!();
     }
     fn get_group(&self, group_id: i32) -> Option<Group> {
-        let query = "SELECT name, groupcode, tag, admin
+        let query = "SELECT name, groupcode, tag
                      FROM usergroup
                      WHERE id  = $1";
-        self.query_map_one(query, &[&group_id], |row| Group { id: Some(group_id),
-                                                              name: row.get(0),
-                                                              groupcode: row.get(1),
-                                                              tag: row.get(2),
-                                                              admin: row.get(3),
-                                                              members: Vec::new() })
-            .unwrap()
+        let mut group = self.query_map_one(query, &[&group_id], |row| Group { id: Some(group_id),
+                                                                              name: row.get(0),
+                                                                              groupcode: row.get(1),
+                                                                              tag: row.get(2),
+                                                                              admins: Vec::new(),
+                                                                              members: Vec::new() })
+                            .unwrap()?;
+
+        let query = "SELECT session FROM usergroup_admin WHERE usergroup = $1 ORDER BY session";
+        group.admins = self.query_map_many(query, &[&group_id], |row| row.get(0)).unwrap();
+
+        Some(group)
     }
     fn group_has_protected_participations(&self, group_id: i32) -> bool {
         let query = "SELECT EXISTS(
@@ -1791,17 +1810,19 @@ impl MedalConnection for Connection {
         self.query_map_one(query, &[&group_id, &true], |row| row.get(0)).unwrap().unwrap()
     }
     fn get_group_complete(&self, group_id: i32) -> Option<Group> {
-        let query = "SELECT name, groupcode, tag, admin
+        let query = "SELECT name, groupcode, tag
                      FROM usergroup
                      WHERE id  = $1";
         let mut group = self.query_map_one(query, &[&group_id], |row| Group { id: Some(group_id),
                                                                               name: row.get(0),
                                                                               groupcode: row.get(1),
                                                                               tag: row.get(2),
-                                                                              admin: row.get(3),
+                                                                              admins: Vec::new(),
                                                                               members: Vec::new() })
-                            .unwrap()
-                            .unwrap(); // TODO handle error
+                            .unwrap()?;
+
+        let query = "SELECT session FROM usergroup_admin WHERE usergroup = $1 ORDER BY session";
+        group.admins = self.query_map_many(query, &[&group_id], |row| row.get(0)).unwrap();
 
         let query = "SELECT id, session_token, csrf_token, last_login, last_activity, account_created, username,
                             password, logincode, email, email_unconfirmed, email_confirmationcode, firstname, lastname,

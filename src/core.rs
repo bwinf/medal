@@ -812,7 +812,7 @@ pub fn load_submission<T: MedalConnection>(conn: &T, task_id: i32, session_token
             // Is it not our own submission?
             if submission.user != session.id && !session.is_admin.unwrap_or(false) {
                 if let Some((_, Some(group))) = conn.get_user_and_group_by_id(submission.user) {
-                    if group.admin != session.id {
+                    if !group.admins.contains(&session.id) {
                         // We are not admin of the user's group
                         return Err(MedalError::AccessDenied);
                     }
@@ -1007,7 +1007,7 @@ pub fn review_task<T: MedalConnection>(conn: &T, task_id: i32, session_token: &s
     // Is it not our own submission?
     if submission.user != session.id && !session.is_admin.unwrap_or(false) {
         if let Some((_, Some(group))) = conn.get_user_and_group_by_id(submission.user) {
-            if group.admin != session.id {
+            if !group.admins.contains(&session.id) {
                 // We are not admin of the user's group
                 return Err(MedalError::AccessDenied);
             }
@@ -1090,8 +1090,6 @@ pub struct GroupInfo {
 pub fn show_groups<T: MedalConnection>(conn: &T, session_token: &str) -> MedalValueResult {
     let session = conn.get_session(&session_token).ensure_logged_in().ok_or(MedalError::NotLoggedIn)?;
 
-    //    let groupvec = conn.get_group(session_token);
-
     let mut data = json_val::Map::new();
     fill_user_data(&session, &mut data);
 
@@ -1126,7 +1124,7 @@ pub fn show_group<T: MedalConnection>(conn: &T, group_id: i32, session_token: &s
     let mut data = json_val::Map::new();
     fill_user_data(&session, &mut data);
 
-    if group.admin != session.id {
+    if !group.admins.contains(&session.id) {
         return Err(MedalError::AccessDenied);
     }
 
@@ -1189,7 +1187,7 @@ pub fn add_group<T: MedalConnection>(conn: &T, session_token: &str, csrf_token: 
         println!("WARNING: Groupcode collision! Retrying ...");
     }
 
-    let mut group = Group { id: None, name, groupcode, tag, admin: session.id, members: Vec::new() };
+    let mut group = Group { id: None, name, groupcode, tag, admins: vec![session.id], members: Vec::new() };
 
     conn.add_group(&mut group);
 
@@ -1224,13 +1222,17 @@ pub fn upload_groups<T: MedalConnection>(conn: &T, session_token: &str, csrf_tok
 
     let mut groupcode = String::new();
     let mut name = String::new();
-    let mut group =
-        Group { id: None, name: name.clone(), groupcode, tag: String::new(), admin: session.id, members: Vec::new() };
+    let mut group = Group { id: None,
+                            name: name.clone(),
+                            groupcode,
+                            tag: String::new(),
+                            admins: vec![session.id],
+                            members: Vec::new() };
 
     for line in v {
         if name != line[0] {
             if name != "" {
-                conn.update_or_create_group_with_users(group);
+                conn.update_or_create_group_with_users(group, session.id);
             }
             name = line[0].clone();
 
@@ -1250,7 +1252,7 @@ pub fn upload_groups<T: MedalConnection>(conn: &T, session_token: &str, csrf_tok
                             name: name.clone(),
                             groupcode,
                             tag: name.clone(),
-                            admin: session.id,
+                            admins: vec![session.id],
                             members: Vec::new() };
         }
 
@@ -1269,7 +1271,7 @@ pub fn upload_groups<T: MedalConnection>(conn: &T, session_token: &str, csrf_tok
 
         group.members.push(user);
     }
-    conn.update_or_create_group_with_users(group);
+    conn.update_or_create_group_with_users(group, session.id);
 
     Ok(())
 }
@@ -1412,7 +1414,7 @@ pub fn show_profile<T: MedalConnection>(conn: &T, session_token: &str, user_id: 
             // TODO: Add test to check if this access restriction works
             let (user, opt_group) = conn.get_user_and_group_by_id(user_id).ok_or(MedalError::AccessDenied)?;
             let group = opt_group.ok_or(MedalError::AccessDenied)?;
-            if group.admin != session.id {
+            if !group.admins.contains(&session.id) {
                 return Err(MedalError::AccessDenied);
             }
 
@@ -1550,7 +1552,7 @@ pub fn edit_profile<T: MedalConnection>(conn: &T, session_token: &str, user_id: 
             // TODO: Add test to check if this access restriction works
             let (mut user, opt_group) = conn.get_user_and_group_by_id(user_id).ok_or(MedalError::AccessDenied)?;
             let group = opt_group.ok_or(MedalError::AccessDenied)?;
-            if group.admin != session.id {
+            if !group.admins.contains(&session.id) {
                 return Err(MedalError::AccessDenied);
             }
 
@@ -1663,7 +1665,7 @@ pub fn admin_show_user<T: MedalConnection>(conn: &T, user_id: i32, session_token
     if !session.is_admin() {
         // Check access for teachers
         if let Some(group) = opt_group.clone() {
-            if group.admin != session.id {
+            if !group.admins.contains(&session.id) {
                 return Err(MedalError::AccessDenied);
             }
         } else if user_id != session.id {
@@ -1734,7 +1736,7 @@ pub fn admin_delete_user<T: MedalConnection>(conn: &T, user_id: i32, session_tok
     if !session.is_admin() {
         // Check access for teachers
         if let Some(group) = opt_group {
-            if group.admin != session.id {
+            if !group.admins.contains(&session.id) {
                 return Err(MedalError::AccessDenied);
             }
         } else {
@@ -1777,7 +1779,7 @@ pub fn admin_move_user_to_group<T: MedalConnection>(conn: &T, user_id: i32, grou
     if !session.is_admin() {
         // Check access for teachers
         if let Some(group) = opt_group {
-            if group.admin != session.id {
+            if !group.admins.contains(&session.id) {
                 return Err(MedalError::AccessDenied);
             }
         } else {
@@ -1786,7 +1788,7 @@ pub fn admin_move_user_to_group<T: MedalConnection>(conn: &T, user_id: i32, grou
     }
 
     let mut data = json_val::Map::new();
-    if conn.get_group_complete(group_id).is_some() {
+    if conn.get_group(group_id).is_some() {
         if let Some(mut user) = conn.get_user_by_id(user_id) {
             user.managed_by = Some(group_id);
             conn.save_session(user);
@@ -1801,6 +1803,13 @@ pub fn admin_move_user_to_group<T: MedalConnection>(conn: &T, user_id: i32, grou
     }
 }
 
+#[derive(Serialize, Deserialize)]
+pub struct AdminInfo {
+    pub id: i32,
+    pub firstname: String,
+    pub lastname: String,
+}
+
 pub fn admin_show_group<T: MedalConnection>(conn: &T, group_id: i32, session_token: &str) -> MedalValueResult {
     let session = conn.get_session(&session_token)
                       .ensure_logged_in()
@@ -1812,7 +1821,7 @@ pub fn admin_show_group<T: MedalConnection>(conn: &T, group_id: i32, session_tok
 
     if !session.is_admin() {
         // Check access for teachers
-        if group.admin != session.id {
+        if !group.admins.contains(&session.id) {
             return Err(MedalError::AccessDenied);
         }
     }
@@ -1849,13 +1858,21 @@ pub fn admin_show_group<T: MedalConnection>(conn: &T, group_id: i32, session_tok
     data.insert("group".to_string(), to_json(&gi));
     data.insert("member".to_string(), to_json(&v));
     data.insert("groupname".to_string(), to_json(&gi.name));
-    data.insert("group_admin_id".to_string(), to_json(&group.admin));
     data.insert("has_protected_participations".to_string(), to_json(&has_protected_participations));
     data.insert("can_delete".to_string(), to_json(&(!has_protected_participations || session.is_admin())));
 
-    let user = conn.get_user_by_id(group.admin).ok_or(MedalError::AccessDenied)?;
-    data.insert("group_admin_firstname".to_string(), to_json(&user.firstname));
-    data.insert("group_admin_lastname".to_string(), to_json(&user.lastname));
+    let admins: Vec<AdminInfo> =
+        group.admins
+             .iter()
+             .map(|a| {
+                 let admin = conn.get_user_by_id(*a).ok_or(MedalError::AccessDenied)?;
+                 Ok(AdminInfo { id: admin.id,
+                                firstname: admin.firstname.clone().unwrap_or_else(|| "".to_string()),
+                                lastname: admin.lastname.clone().unwrap_or_else(|| "".to_string()) })
+             })
+             .collect::<Result<Vec<_>, _>>()?;
+
+    data.insert("group_admin".to_string(), to_json(&admins));
 
     Ok(("admin_group".to_string(), data))
 }
@@ -1876,7 +1893,7 @@ pub fn admin_delete_group<T: MedalConnection>(conn: &T, group_id: i32, session_t
 
     if !session.is_admin() {
         // Check access for teachers
-        if group.admin != session.id {
+        if !group.admins.contains(&session.id) {
             return Err(MedalError::AccessDenied);
         }
     }
@@ -1924,7 +1941,7 @@ pub fn admin_show_participation<T: MedalConnection>(conn: &T, user_id: i32, cont
     if !session.is_admin() {
         // Check access for teachers
         if let Some(ref group) = opt_group {
-            if group.admin != session.id {
+            if !group.admins.contains(&session.id) {
                 return Err(MedalError::AccessDenied);
             }
         } else {
@@ -2008,7 +2025,7 @@ pub fn admin_delete_participation<T: MedalConnection>(conn: &T, user_id: i32, co
         }
 
         if let Some(group) = opt_group {
-            if group.admin != session.id {
+            if !group.admins.contains(&session.id) {
                 return Err(MedalError::AccessDenied);
             }
         } else {
