@@ -167,6 +167,52 @@
 <div class="columns">
   <div class="column is-8 is-offset-2">
     <hr>
+    <h4 class="subtitle is-5">Administratoren</h4>
+    <ul>
+      {{#each group_admin}}
+        <li> &nbsp; • &nbsp; {{firstname}} {{lastname}}</li>
+      {{/each}}
+    </ul>
+
+    <p> &nbsp; </p>
+
+      <form action="/group/{{group.id}}/addadmin" method="post">
+        <div class="field is-horizontal">
+          <div class="field-label">
+            <label class="label">Lehrperson-ID:</label>
+          </div>
+          <div class="field-body">
+            <div class="field">
+            <div class="control">
+              <input name="teacherid" class="input is-small" type="text" required>
+            </div>
+            </div>
+            <div class="field">
+            <div class="control">
+              <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+              <input type="submit" class="button is-link is-small" value="Als Admin hinzufügen">
+            </div>
+            </div>
+          </div>
+        </div>
+      </form>
+
+    <p> &nbsp; </p>
+
+    <p class="is-size-7">
+      Hier können weitere Lehrerpersonen der gleichen Schule zu einem Admin dieser Gruppe gemacht werden.
+      Jeder Admin hat volle Berechtigung die Gruppe zu modifizieren und zu löschen.
+      Die Lehrperson muss der gleichen Schule zugeordnet sein, wie Sie. Dafür muss ggf. unter
+      <a href="https://login.bwinf.de/" target="_blank">https://login.bwinf.de</a> die Schule hinzugefügt werden und sich erneut mit dieser Schule auf dieser Seite <a href="/login" target="_blank">eingeloggt</a> werden.
+      Die ID lässt sich oben <a href="/profile">im Profil</a> finden.
+    </p>
+  </div>
+</div>
+
+
+<div class="columns">
+  <div class="column is-8 is-offset-2">
+    <hr>
     <h4 class="subtitle is-5">Gruppe löschen</h4>
     <!--
     <p>&nbsp;</p>
@@ -213,7 +259,7 @@ document.getElementById("clipboard").onclick = function() {
 
 <script>
   document.getElementById("deleteform").onsubmit = function(event) {
-    if (confirm("Gruppe und alle Mitglieder wirklich löschen?")) {
+    if (confirm("Gruppe und alle Mitglieder wirklich löschen?{{#if morethanoneadmin}}\n\nAchtung: Diese Gruppe hat mehrere Administratoren. Möglicherweise wurde diese Gruppe nicht von Ihnen erstellt. Wenn Sie die Gruppe löschen, wird sie für ALLE Administratoren gelöscht.{{/if}}")) {
       var xhr = new XMLHttpRequest();
       xhr.open("POST", window.location.href, true);
       xhr.onreadystatechange = function() {

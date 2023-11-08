@@ -32,6 +32,12 @@
    <p>Benutzername: {{profile_username}}</p>
 {{/if}}
 
+{{#if is_teacher}}
+  {{#if ownprofile}}
+    <p>ID: {{userid}}</p>
+  {{/if}}
+{{/if}}
+
 {{#if profile_logincode}}
   {{#if ownprofile}}
     <p>&nbsp;</p>
