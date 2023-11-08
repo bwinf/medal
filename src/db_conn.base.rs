@@ -713,6 +713,13 @@ impl MedalConnection for Connection {
         }
     }
 
+    fn add_admin_to_group(&self, group: &mut Group, admin: i32) {
+        let query = "INSERT INTO usergroup_admin (usergroup, session)
+                     VALUES ($1, $2)";
+        self.execute(query, &[&group.get_id(), &admin]).unwrap();
+        group.admins.push(admin);
+    }
+
     fn logout(&self, session: &str) {
         let query = "UPDATE session
                      SET session_token = NULL

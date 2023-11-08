@@ -1364,6 +1364,7 @@ pub fn show_profile<T: MedalConnection>(conn: &T, session_token: &str, user_id: 
                 // addresses can be obtained from OAuth provider
             }
             data.insert("ownprofile".into(), to_json(&true));
+            data.insert("userid".into(), to_json(&session.id));
 
             if let Some(query) = query_string {
                 if let Some(status) = query.strip_prefix("status=") {
@@ -1873,8 +1874,55 @@ pub fn admin_show_group<T: MedalConnection>(conn: &T, group_id: i32, session_tok
              .collect::<Result<Vec<_>, _>>()?;
 
     data.insert("group_admin".to_string(), to_json(&admins));
+    data.insert("morethanoneadmin".to_string(), to_json(&(admins.len() > 1)));
 
     Ok(("admin_group".to_string(), data))
+}
+
+pub fn group_add_admin<T: MedalConnection>(conn: &T, group_id: i32, teacher_id: i32, session_token: &str,
+                                           csrf_token: &str)
+                                           -> MedalValueResult {
+    let session = conn.get_session(&session_token)
+                      .ensure_logged_in()
+                      .ok_or(MedalError::NotLoggedIn)?
+                      .ensure_teacher()
+                      .ok_or(MedalError::AccessDenied)?;
+
+    if session.csrf_token != csrf_token {
+        return Err(MedalError::CsrfCheckFailed);
+    }
+
+    let mut group = conn.get_group(group_id).unwrap(); // TODO handle error
+
+    if !group.admins.contains(&session.id) {
+        return Err(MedalError::AccessDenied);
+    }
+
+    if group.admins.contains(&teacher_id) {
+        let mut data = json_val::Map::new();
+        data.insert("reason".to_string(), to_json(&"Benutzer ist bereits Admin."));
+        return Ok(("delete_fail".to_string(), data));
+    }
+
+    let teacher = conn.get_user_by_id(teacher_id).ok_or(MedalError::NotFound)?;
+    if teacher.oauth_provider == session.oauth_provider {
+        if let Some((_, teacher_school)) = teacher.oauth_foreign_id.ok_or(MedalError::AccessDenied)?.split_once('/') {
+            if let Some((_, session_school)) = session.oauth_foreign_id.ok_or(MedalError::AccessDenied)?.split_once('/')
+            {
+                if teacher_school == session_school && teacher_school.len() > 1 {
+                    conn.add_admin_to_group(&mut group, teacher_id);
+
+                    let data = json_val::Map::new();
+                    return Ok(("delete_ok".to_string(), data));
+                }
+            }
+        }
+    }
+
+    let mut data = json_val::Map::new();
+    data.insert("reason".to_string(),
+                to_json(&"Benutzer gehört nicht zur gleichen Schule oder Benutzer nicht als Lehrkraft angemeldet."));
+    Ok(("delete_fail".to_string(), data))
 }
 
 pub fn admin_delete_group<T: MedalConnection>(conn: &T, group_id: i32, session_token: &str, csrf_token: &str)

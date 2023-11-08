@@ -1136,6 +1136,28 @@ fn admin_group<C>(req: &mut Request) -> IronResult<Response>
     Ok(resp)
 }
 
+fn group_addadmin<C>(req: &mut Request) -> IronResult<Response>
+    where C: MedalConnection + std::marker::Send + 'static {
+    let group_id = req.expect_int::<i32>("groupid")?;
+    let session_token = req.expect_session_token()?;
+    let config = req.get::<Read<SharedConfiguration>>().unwrap();
+
+    let (csrf_token, teacher_id) = {
+        let formdata = iexpect!(req.get_ref::<UrlEncodedBody>().ok());
+        (iexpect!(formdata.get("csrf_token"))[0].to_owned(),
+         iexpect!(formdata.get("teacherid").unwrap_or(&vec!["".to_owned()])[0].parse::<i32>().ok()))
+    };
+
+    let (template, mut data) =
+        with_conn![core::group_add_admin, C, req, group_id, teacher_id, &session_token, &csrf_token].aug(req)?;
+
+    data.insert("config".to_string(), to_json(&config.template_params));
+
+    let mut resp = Response::new();
+    resp.set_mut(Template::new(&template, data)).set_mut(status::Ok);
+    Ok(resp)
+}
+
 fn admin_participation<C>(req: &mut Request) -> IronResult<Response>
     where C: MedalConnection + std::marker::Send + 'static {
     let user_id = req.expect_int::<i32>("userid")?;
@@ -1580,6 +1602,7 @@ pub fn start_server<C>(conn: C, config: Config) -> iron::error::HttpResult<iron:
         groups: post "/group/" => new_group::<C>,
         group: get "/group/:groupid" => admin_group::<C>,
         group_post: post "/group/:groupid" => admin_group::<C>,
+        group_addadmin: post "/group/:groupid/addadmin" => group_addadmin::<C>,
         group_download: get "/group/download/:groupid" => group_download::<C>,
         //group_post: post "/group" => group_post::<C>,
         groupcsv: get "/group/csv" => group_csv::<C>,
