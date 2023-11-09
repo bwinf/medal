@@ -176,7 +176,7 @@
 
     <p> &nbsp; </p>
 
-      <form action="/group/{{group.id}}/addadmin" method="post">
+      <form action="/group/{{group.id}}/addadmin" method="post" id="addadminform">
         <div class="field is-horizontal">
           <div class="field-label">
             <label class="label">Lehrperson-ID:</label>
@@ -184,7 +184,7 @@
           <div class="field-body">
             <div class="field">
             <div class="control">
-              <input name="teacherid" class="input is-small" type="text" required>
+              <input name="teacherid" id="addadminteacherid" class="input is-small" type="text" required>
             </div>
             </div>
             <div class="field">
@@ -254,6 +254,32 @@ document.getElementById("clipboard").onclick = function() {
     document.getElementById("clipboard").innerHTML = '⎘<span style="visibility:hidden">✔</span>';
   }, 1000)
 }
+</script>
+
+<script>
+  document.getElementById("addadminform").onsubmit = function(event) {
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", "/group/{{group.id}}/addadmin", true);
+    xhr.onreadystatechange = function() {
+      if (this.readyState === XMLHttpRequest.DONE) {
+        if (this.status === 200) {
+          result = JSON.parse(this.responseText);
+          if (result.status == "ok") {
+            document.getElementById("addadminteacherid").value = "";
+            location.reload();
+          } else {
+            alert("Konnte Benutzer nicht hinzufügen: " + result.reason);
+          }
+        }
+        else {
+          alert("Benutzer konnte nicht gefunden werden (" + this.status + ": " + this.statusText + ")");
+        }
+      }
+    }
+    var teacherid = document.getElementById("addadminteacherid").value;
+    xhr.send("csrf_token={{csrf_token}}&teacherid=" + teacherid);
+    return false;
+  };
 </script>
 {{/if}}
 
