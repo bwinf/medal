@@ -1159,8 +1159,8 @@ impl MedalConnection for Connection {
                                     session.sex,
                                     session.is_teacher,
                                     session.managed_by,
-                                    usergroup.name,
-                                    usergroup.tag,
+                                    ug.name,
+                                    ug.tag,
                                     teacher.id,
                                     teacher.firstname,
                                     teacher.lastname,
@@ -1172,8 +1172,8 @@ impl MedalConnection for Connection {
                              FROM participation
                              JOIN session ON participation.session = session.id
                              {}
-                             LEFT JOIN usergroup ON session.managed_by = usergroup.id
-                             LEFT JOIN session AS teacher ON usergroup.admin = teacher.id
+                             LEFT JOIN usergroup AS ug ON session.managed_by = ug.id
+                             LEFT JOIN session AS teacher ON teacher.id = (SELECT MIN(usergroup_admin.session) FROM usergroup_admin WHERE usergroup_admin.usergroup = ug.id)
                              WHERE participation.contest = ?1",
                             select_part, join_part);
 
