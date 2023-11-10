@@ -984,7 +984,8 @@ impl MedalConnection for Connection {
                      JOIN session AS student ON grade.session = student.id
                      JOIN usergroup ON student.managed_by = usergroup.id
                      JOIN participation ON participation.session = student.id AND participation.contest = ?2
-                     WHERE usergroup.admin = ?1
+                     JOIN usergroup_admin ON usergroup.id = usergroup_admin.usergroup
+                     WHERE usergroup_admin.session = ?1
                      AND taskgroup.contest = ?2
                      AND taskgroup.active = ?3
                      ORDER BY usergroup.id, sgrade, student.lastname, student.firstname, student.id,
