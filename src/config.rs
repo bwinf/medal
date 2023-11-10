@@ -56,6 +56,7 @@ pub struct Config {
     pub log_timing: Option<bool>,
     pub auto_save_interval: Option<u64>,
     pub version: Option<bool>,
+    pub restricted_task_directories: Option<Vec<String>>,
 }
 
 #[derive(StructOpt, Debug)]
@@ -151,6 +152,24 @@ pub fn read_config_from_file(file: &Path) -> Config {
                  file.to_str().unwrap_or("<Encoding error>"));
         Default::default()
     };
+
+    if let Some(ref rtds) = config.restricted_task_directories {
+        // Some sanity checks
+        for rtd in rtds {
+            if !Path::new(rtd).exists() {
+                println!("WARNING: restricted task directory '{}' does NOT exist!", rtd);
+            }
+            if rtd.chars().last().unwrap_or(' ') != '/' {
+                println!("WARNING: restricted task directory '{}' does NOT end with a '/'", rtd);
+            }
+            if !rtd.starts_with("tasks/") {
+                println!("WARNING: restricted task directory '{}' does NOT start with 'tasks/'", rtd);
+            }
+            if rtd == "tasks/" {
+                println!("WARNING: restricted task directory '{}' restricts ALL tasks", rtd);
+            }
+        }
+    }
 
     if let Some(ref oap) = config.oauth_providers {
         println!("OAuth providers:");

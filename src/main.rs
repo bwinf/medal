@@ -63,7 +63,7 @@ use webfw_iron::start_server;
 
 use config::Config;
 
-fn refresh_all_contests<C>(conn: &mut C)
+fn refresh_all_contests<C>(conn: &mut C, config: &Config)
     where C: MedalConnection,
           db_objects::Contest: db_conn::MedalObject<C>
 {
@@ -71,7 +71,7 @@ fn refresh_all_contests<C>(conn: &mut C)
     conn.reset_all_taskgroup_visibilities();
 
     print!("Scanning for contests … ");
-    let v = contestreader_yaml::get_all_contest_info("tasks/");
+    let v = contestreader_yaml::get_all_contest_info("tasks/", config);
     println!(" Done");
 
     print!("Storing contests information … ");
@@ -127,7 +127,7 @@ fn prepare_and_start_server<C>(mut conn: C, config: Config)
     db_apply_migrations::test(&mut conn);
 
     if config.only_contest_scan == Some(true) || config.no_contest_scan != Some(true) {
-        refresh_all_contests(&mut conn);
+        refresh_all_contests(&mut conn, &config);
     }
 
     if config.only_contest_scan != Some(true) {

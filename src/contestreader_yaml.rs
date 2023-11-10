@@ -260,14 +260,16 @@ fn read_task_or_contest(p: &Path) -> Option<Vec<Contest>> {
     }
 }
 
-pub fn get_all_contest_info(task_dir: &str) -> Vec<Contest> {
-    fn walk_me_recursively(p: &Path, contests: &mut Vec<Contest>) {
+use config::Config;
+
+pub fn get_all_contest_info(task_dir: &str, config: &Config) -> Vec<Contest> {
+    fn walk_me_recursively(p: &Path, contests: &mut Vec<Contest>, config: &Config) {
         if let Ok(paths) = std::fs::read_dir(p) {
             let mut paths: Vec<_> = paths.filter_map(|r| r.ok()).collect();
             paths.sort_by_key(|dir| dir.path());
             for path in paths {
                 let p = path.path();
-                walk_me_recursively(&p, contests);
+                walk_me_recursively(&p, contests, config);
             }
         }
 
@@ -279,7 +281,31 @@ pub fn get_all_contest_info(task_dir: &str) -> Vec<Contest> {
                 std::io::stdout().flush().unwrap();
             }
 
-            read_task_or_contest(p).as_mut().map(|cs| contests.append(cs));
+            let mut restricted = false;
+            config.restricted_task_directories.as_ref().map(|restricted_task_directories| {
+                let pathname = p.to_string_lossy().to_string();
+                restricted_task_directories.iter().for_each(|restricted_task_directory| {
+                    if pathname.starts_with(restricted_task_directory) {
+                        restricted = true;
+                    }
+                });
+            });
+
+            if let Some(cs) = read_task_or_contest(p) {
+                for c in cs {
+                    if restricted {
+                        if c.public {
+                            println!("\nWARNING: Skipping public contest defined in '{}' due to being in a restricted directory!", p.display());
+                            continue;
+                        }
+                        if c.secret.is_none() {
+                            println!("\nWARNING: Contest defined in '{}' has no secret, can only be reached via id!",
+                                     p.display());
+                        }
+                    }
+                    contests.push(c);
+                }
+            }
         };
     }
 
@@ -288,7 +314,7 @@ pub fn get_all_contest_info(task_dir: &str) -> Vec<Contest> {
         Err(why) => eprintln!("Error opening tasks directory! {:?}", why.kind()),
         Ok(paths) => {
             for path in paths {
-                walk_me_recursively(&path.unwrap().path(), &mut contests);
+                walk_me_recursively(&path.unwrap().path(), &mut contests, config);
             }
         }
     };
