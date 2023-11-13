@@ -27,6 +27,7 @@ use iron_sessionstorage::backends::SignedCookieBackend;
 use iron_sessionstorage::traits::*;
 use iron_sessionstorage::SessionStorage;
 use mount::Mount;
+use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
 use persistent::{Read, Write};
 use reqwest;
 use router::Router;
@@ -556,11 +557,11 @@ fn contestresults_download<C>(req: &mut Request) -> IronResult<Response>
                                   parameters: vec![DispositionParam::Filename(
         Charset::Ext("Utf-8".to_string()), // The character set for the bytes of the filename
         None,                              // The optional language tag (see `language-tag` crate)
-        format!("{}.csv", data.get("contestname").unwrap().as_str().unwrap()).as_bytes().to_vec(), // the actual bytes of the filename
+        format!("{}.csv", utf8_percent_encode(data.get("contestname").unwrap().as_str().unwrap(), NON_ALPHANUMERIC)).as_bytes().to_vec(), // the actual bytes of the filename
                                                                                                    // TODO: The name should be returned by core::show_contest_results directly
     )] };
 
-    let mime: Mime = "text/csv".parse().unwrap();
+    let mime: Mime = "text/csv; charset=UTF-8".parse().unwrap();
     let mut resp = Response::new();
     resp.headers.set(cd);
     resp.set_mut(Template::new(&format!("{}_download", template), data)).set_mut(status::Ok).set_mut(mime);

@@ -26,6 +26,7 @@ extern crate handlebars_iron;
 extern crate iron_sessionstorage;
 extern crate mount;
 extern crate params;
+extern crate percent_encoding;
 extern crate persistent;
 extern crate rand;
 extern crate reqwest;

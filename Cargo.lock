@@ -1092,6 +1092,7 @@ dependencies = [
  "linked-hash-map",
  "mount",
  "params",
+ "percent-encoding 2.1.0",
  "persistent",
  "postgres",
  "rand 0.5.6",
