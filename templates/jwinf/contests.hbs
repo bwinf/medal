@@ -17,6 +17,90 @@
   </div>
 </div>
 
+{{#if direct_link_to_results }}
+<div class="columns">
+  <div class="column is-8 is-offset-2">
+    CSV ZIP-Archiv herunterladen:
+    <a href="#" class="button is-warning is-small" id="zipcon">🗜 Ergebnisse von Wettbewerben</a>
+    <a href="#" class="button is-warning is-small" id="ziptrn">🗜 Ergebnisse von Trainings/Herausforderungen</a>
+    <a href="#" class="button is-warning is-small" id="zipall">🗜 Alle Ergebnisse</a>
+  </div>
+</div>
+
+<script src="/static/lib/jszip/jszip-3.10.1.min.js"> </script>
+<script src="/static/lib/jszip/FileSaver-2.0.4.min.js"> </script>
+<script>
+function generateListOfUrls(category) {
+  if ("all" == category) {
+     return [
+       {{#each contests_contest}}
+         '/contest/{{ id }}/result/download',
+       {{/each}}
+       {{#each contests_challenge}}
+         '/contest/{{ id }}/result/download',
+       {{/each}}
+       {{#each contests_training}}
+         '/contest/{{ id }}/result/download',
+       {{/each}}
+     ]
+  }
+
+  if ("contest" == category) {
+     return [
+       {{#each contests_contest}}
+         '/contest/{{ id }}/result/download',
+       {{/each}}
+     ]
+  }
+
+  if ("training" == category) {
+     return [
+       {{#each contests_challenge}}
+         '/contest/{{ id }}/result/download',
+       {{/each}}
+       {{#each contests_training}}
+         '/contest/{{ id }}/result/download',
+       {{/each}}
+     ]
+  }
+
+  return 0;
+}
+
+function download(listOfUrls) {
+  var zip = new JSZip();
+
+  function recursive_download() {
+    if (listOfUrls.length == 0) {
+      zip.generateAsync({type:"blob"})
+         .then(function(content) {
+        var now = new Date();
+        saveAs(content, "Wettbewerbsergebnisse_JWINF__" + now.getFullYear() + "_" + now.getMonth() + "_" + now.getDay() + "__" + now.getHours() + "_" + now.getMinutes() + ".zip");
+      });
+    } else {
+      nextUrl = listOfUrls.pop();
+
+      var xhr = new XMLHttpRequest();
+      xhr.responseType = 'blob';
+      xhr.onreadystatechange = function() {
+        if (xhr.readyState == 4 && xhr.status == 200) {
+          filename = decodeURIComponent(xhr.getResponseHeader('content-disposition').split('filename=')[1].split('"')[1]);
+          zip.file(filename, xhr.response);
+          recursive_download();
+        }
+      }
+      xhr.open('GET', nextUrl);
+      xhr.send();
+    }
+  }
+  recursive_download();
+}
+
+document.getElementById("zipall").onclick = function() { download(generateListOfUrls("all")); return false; };
+document.getElementById("zipcon").onclick = function() { download(generateListOfUrls("contest")); return false; };
+document.getElementById("ziptrn").onclick = function() { download(generateListOfUrls("training")); return false; };
+</script>
+{{/if}}
 
       {{#if contests_contest}}
       <div class="columns">
