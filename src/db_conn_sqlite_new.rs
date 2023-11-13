@@ -1367,7 +1367,8 @@ impl MedalConnection for Connection {
     fn get_contest_list(&self) -> Vec<Contest> {
         let query = "SELECT id, location, filename, name, duration, public, start_date, end_date, review_start_date,
                             review_end_date, min_grade, max_grade, positionalnumber, protected, requires_login,
-                            requires_contest, secret, message, image, language, category, standalone_task, tags
+                            requires_contest, secret, message, image, language, category, standalone_task,
+                            contest_tags.tags
                      FROM contest
                      LEFT JOIN contest_tags USING (id)
                      ORDER BY positionalnumber DESC";
@@ -1399,6 +1400,54 @@ impl MedalConnection for Connection {
                                                                  })
                                                                  .unwrap_or_else(Vec::new),
                                                         taskgroups: Vec::new() })
+            .unwrap()
+    }
+
+    fn get_contest_list_with_group_member_participations(&self, session_id: i32) -> Vec<Contest> {
+        let query = "SELECT DISTINCT contest.id, contest.location, contest.filename, contest.name, contest.duration,
+                            contest.public, contest.start_date, contest.end_date, contest.review_start_date,
+                            contest.review_end_date, contest.min_grade, contest.max_grade, contest.positionalnumber,
+                            contest.protected, contest.requires_login, contest.requires_contest, contest.secret,
+                            contest.message, contest.image, contest.language, contest.category, contest.standalone_task,
+                            contest_tags.tags
+                     FROM contest
+                     JOIN participation ON participation.contest = contest.id
+                     JOIN session ON session.id = participation.session
+                     JOIN usergroup ON usergroup.id = session.managed_by
+                     JOIN usergroup_admin ON usergroup_admin.usergroup = usergroup.id
+                     LEFT JOIN contest_tags USING (id)
+                     WHERE usergroup_admin.session = ?1
+                     ORDER BY positionalnumber DESC";
+        self.query_map_many(query, &[&session_id], |row| Contest { id: Some(row.get(0)),
+                                                                   location: row.get(1),
+                                                                   filename: row.get(2),
+                                                                   name: row.get(3),
+                                                                   duration: row.get(4),
+                                                                   public: row.get(5),
+                                                                   start: row.get(6),
+                                                                   end: row.get(7),
+                                                                   review_start: row.get(8),
+                                                                   review_end: row.get(9),
+                                                                   min_grade: row.get(10),
+                                                                   max_grade: row.get(11),
+                                                                   positionalnumber: row.get(12),
+                                                                   protected: row.get(13),
+                                                                   requires_login: row.get(14),
+                                                                   requires_contest: row.get(15),
+                                                                   secret: row.get(16),
+                                                                   message: row.get(17),
+                                                                   image: row.get(18),
+                                                                   language: row.get(19),
+                                                                   category: row.get(20),
+                                                                   standalone_task: row.get(21),
+                                                                   tags: row.get::<_, Option<String>>(22)
+                                                                            .map(|tags| {
+                                                                                tags.split(',')
+                                                                                    .map(|tag| tag.to_owned())
+                                                                                    .collect()
+                                                                            })
+                                                                            .unwrap_or_else(Vec::new),
+                                                                   taskgroups: Vec::new() })
             .unwrap()
     }
 

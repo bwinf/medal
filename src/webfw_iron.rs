@@ -456,7 +456,8 @@ fn contests<C>(req: &mut Request) -> IronResult<Response>
 
     let config = req.get::<Read<SharedConfiguration>>().unwrap();
 
-    let res = with_conn![core::show_contests, C, req, &session_token, login_info(&config), visibility];
+    let is_results = query_string.contains("results");
+    let res = with_conn![core::show_contests, C, req, &session_token, login_info(&config), visibility, is_results];
 
     if res.is_err() {
         // Database connection failed … Create a new database connection!
@@ -472,7 +473,7 @@ fn contests<C>(req: &mut Request) -> IronResult<Response>
     let (template, mut data) = res.unwrap();
     data.insert("config".to_string(), to_json(&config.template_params));
 
-    if query_string.contains("results") {
+    if is_results {
         data.insert("direct_link_to_results".to_string(), to_json(&true));
     }
 

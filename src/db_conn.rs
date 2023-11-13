@@ -106,6 +106,9 @@ pub trait MedalConnection {
     /// Returns a `Vec` of /all/ contests ever defined.
     fn get_contest_list(&self) -> Vec<Contest>;
 
+    /// Returns a `Vec` of contests where participations exist.
+    fn get_contest_list_with_group_member_participations(&self, session_id: i32) -> Vec<Contest>;
+
     /// Returns the contest identified by `contest_id` without any associated taskgroups. Panics if the contest does not
     /// exist.
     fn get_contest_by_id(&self, contest_id: i32) -> Option<Contest>;

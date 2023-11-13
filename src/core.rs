@@ -233,7 +233,7 @@ pub enum ContestVisibility {
 }
 
 pub fn show_contests<T: MedalConnection>(conn: &T, session_token: &str, login_info: LoginInfo,
-                                         visibility: ContestVisibility)
+                                         visibility: ContestVisibility, is_results: bool)
                                          -> MedalValueResult {
     let mut data = json_val::Map::new();
 
@@ -246,31 +246,38 @@ pub fn show_contests<T: MedalConnection>(conn: &T, session_token: &str, login_in
 
     fill_oauth_data(login_info, &mut data);
 
+    let contest_list = if is_results {
+        conn.get_contest_list_with_group_member_participations(session.id)
+    } else {
+        conn.get_contest_list()
+    };
+
     let now = time::get_time();
     let v: Vec<ContestInfo> =
-        conn.get_contest_list()
-            .iter()
-            .filter(|c| c.public)
-            .filter(|c| (!c.standalone_task.unwrap_or(false)) || visibility == ContestVisibility::StandaloneTask)
-            .filter(|c| c.standalone_task.unwrap_or(false) || visibility != ContestVisibility::StandaloneTask)
-            .filter(|c| c.end.map(|end| now <= end).unwrap_or(true) || visibility == ContestVisibility::All)
-            .filter(|c| c.duration == 0 || visibility != ContestVisibility::Open)
-            .filter(|c| c.duration != 0 || visibility != ContestVisibility::Current)
-            .filter(|c| c.requires_login.unwrap_or(false) || visibility != ContestVisibility::LoginRequired)
-            .filter(|c| {
-                !c.requires_login.unwrap_or(false)
-                || visibility == ContestVisibility::LoginRequired
-                || visibility == ContestVisibility::All
-            })
-            .map(|c| ContestInfo { id: c.id.unwrap(),
-                                   name: c.name.clone(),
-                                   duration: c.duration,
-                                   public: c.public,
-                                   requires_login: c.requires_login.unwrap_or(false),
-                                   image: c.image.as_ref().map(|i| format!("/{}{}", c.location, i)),
-                                   language: c.language.clone(),
-                                   tags: c.tags.clone() })
-            .collect();
+        contest_list.iter()
+                    .filter(|c| c.public)
+                    .filter(|c| {
+                        (!c.standalone_task.unwrap_or(false)) || visibility == ContestVisibility::StandaloneTask
+                    })
+                    .filter(|c| c.standalone_task.unwrap_or(false) || visibility != ContestVisibility::StandaloneTask)
+                    .filter(|c| c.end.map(|end| now <= end).unwrap_or(true) || visibility == ContestVisibility::All)
+                    .filter(|c| c.duration == 0 || visibility != ContestVisibility::Open)
+                    .filter(|c| c.duration != 0 || visibility != ContestVisibility::Current)
+                    .filter(|c| c.requires_login.unwrap_or(false) || visibility != ContestVisibility::LoginRequired)
+                    .filter(|c| {
+                        !c.requires_login.unwrap_or(false)
+                        || visibility == ContestVisibility::LoginRequired
+                        || visibility == ContestVisibility::All
+                    })
+                    .map(|c| ContestInfo { id: c.id.unwrap(),
+                                           name: c.name.clone(),
+                                           duration: c.duration,
+                                           public: c.public,
+                                           requires_login: c.requires_login.unwrap_or(false),
+                                           image: c.image.as_ref().map(|i| format!("/{}{}", c.location, i)),
+                                           language: c.language.clone(),
+                                           tags: c.tags.clone() })
+                    .collect();
 
     let contests_training: Vec<ContestInfo> =
         v.clone().into_iter().filter(|c| !c.requires_login).filter(|c| c.duration == 0).collect();
