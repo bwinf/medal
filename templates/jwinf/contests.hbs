@@ -69,6 +69,7 @@ function generateListOfUrls(category) {
 
 function download(listOfUrls) {
   var zip = new JSZip();
+  var nameToNumber = {};
 
   function recursive_download() {
     if (listOfUrls.length == 0) {
@@ -84,7 +85,25 @@ function download(listOfUrls) {
       xhr.responseType = 'blob';
       xhr.onreadystatechange = function() {
         if (xhr.readyState == 4 && xhr.status == 200) {
-          filename = decodeURIComponent(xhr.getResponseHeader('content-disposition').split('filename=')[1].split('"')[1]);
+          var filename = decodeURIComponent(xhr.getResponseHeader('content-disposition').split('filename=')[1].split('"')[1]);
+
+          // TODO: This should happen when delivering the file!
+          filename = filename.replace("/", '_');
+
+          var number = nameToNumber[filename];
+          if (number == undefined) {
+            nameToNumber[filename] = 2;
+          } else {
+            var filenameParts = filename.split(".");
+            var partToAddNumber = filenameParts.length - 2;
+            if (partToAddNumber < 0) {
+              partToAddNumber = 0
+            }
+            filenameParts[partToAddNumber] = filenameParts[partToAddNumber] + " (" + number + ")";
+            filename = filenameParts.join(".");
+            nameToNumber[filename] = number + 1;
+          }
+
           zip.file(filename, xhr.response);
           recursive_download();
         }
