@@ -41,6 +41,7 @@ build:
     - "scp -r tasks/jwinf/pythonwrapper.html medald@jim.test.bwinf.de:medal/tasks/jwinf/"
     - ssh medald@jim.test.bwinf.de "sudo /bin/systemctl start medal && sudo /bin/systemctl start medalp && sudo /bin/systemctl start medal-nachtermin"
   only:
+    - main
     - master
     - deploy
     - /\+testdeploy/i
