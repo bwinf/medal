@@ -105,6 +105,22 @@
           </div>
         </div>
 
+        <div class="column is-2" style="font-size:small;">
+          {{#if current_contests}}
+            <span style="font-weight:bold;">Aktuelle Wettbewerbe:</span><br>
+            {{#each current_contests}}
+              <a href="/contest/{{ this.1 }}">{{ this.0 }}</a> noch {{ this.2.0 }} Tage, {{ this.2.1 }} h<br>
+            {{/each}}
+          {{/if}}
+          {{#if current_contests}}{{#if upcoming_contests}}<br>{{/if}}{{/if}}
+          {{#if upcoming_contests}}
+            <span style="font-weight:bold;">Anstehende Wettbewerbe:</span><br>
+            {{#each upcoming_contests}}
+              <a href="/contest/{{ this.1 }}">{{ this.0 }}</a> in {{ this.2.0 }} Tagen, {{ this.2.1 }} h<br>
+            {{/each}}
+          {{/if}}
+        </div>
+
       </div>
 {{/inline}}
 {{~> (parent)~}}

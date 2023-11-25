@@ -136,6 +136,32 @@ fn grade_to_string(grade: i32) -> String {
     }
 }
 
+fn common_prefix<'a>(a: &'a str, b: &'a str) -> &'a str {
+    let mut ac = a.char_indices();
+    let mut bc = b.char_indices();
+
+    let mut ai;
+    let mut bi;
+    loop {
+        ai = ac.next();
+        bi = bc.next();
+        if ai != bi {
+            break;
+        }
+        if ai.is_none() {
+            break;
+        }
+    }
+    if ai.is_none() {
+        return a;
+    }
+    if bi.is_none() {
+        return b;
+    }
+
+    a.get(..(ai.unwrap().0)).unwrap()
+}
+
 pub fn index<T: MedalConnection>(conn: &T, session_token: Option<String>, login_info: LoginInfo) -> MedalValueResult {
     let mut data = json_val::Map::new();
 
@@ -150,6 +176,91 @@ pub fn index<T: MedalConnection>(conn: &T, session_token: Option<String>, login_
     }
 
     fill_oauth_data(login_info, &mut data);
+
+    let now = time::get_time();
+    let contest_list = conn.get_contest_list();
+    let mut contests_running: Vec<(String, String, (i64, i64))> =
+        contest_list.iter()
+                    .filter(|c| c.public)
+                    .filter(|c| c.duration != 0)
+                    .filter(|c| !c.requires_login.unwrap_or(false))
+                    .filter(|c| c.end.map(|end| now <= end).unwrap_or(false))
+                    .filter(|c| c.start.map(|start| now >= start).unwrap_or(true))
+                    .map(|c| {
+                        (c.name.clone(),
+                         format!("{}", c.id.unwrap_or(0)),
+                         {
+                             let t = c.end.unwrap().sec - now.sec;
+                             (t / 60 / 60 / 24, t / 60 / 60 % 24)
+                         })
+                    })
+                    .collect();
+
+    let mut i = 0;
+    while i < contests_running.len() {
+        let mut count = 0;
+        while i + 1 < contests_running.len() {
+            if contests_running[i].2 == contests_running[i + 1].2 {
+                // Same end date
+
+                contests_running[i].0 = common_prefix(&contests_running[i].0, &contests_running[i + 1].0).to_string();
+                count += 1;
+                contests_running.remove(i + 1);
+            } else {
+                break;
+            }
+        }
+        if count > 0 {
+            contests_running[i].0 = format!("{}… ({}x)", contests_running[i].0, count + 1);
+            contests_running[i].1 = "?filter=current".to_string();
+        }
+        i += 1;
+    }
+
+    if contests_running.len() > 0 {
+        data.insert("current_contests".to_string(), to_json(&contests_running));
+    }
+
+    let mut contests_comming: Vec<(String, String, (i64, i64))> =
+        contest_list.iter()
+                    .filter(|c| c.public)
+                    .filter(|c| c.duration != 0)
+                    .filter(|c| !c.requires_login.unwrap_or(false))
+                    .filter(|c| c.start.map(|start| now <= start).unwrap_or(false))
+                    .map(|c| {
+                        (c.name.clone(),
+                         format!("{}", c.id.unwrap_or(0)),
+                         {
+                             let t = c.start.unwrap().sec - now.sec;
+                             (t / 60 / 60 / 24, t / 60 / 60 % 24)
+                         })
+                    })
+                    .collect();
+
+    let mut i = 0;
+    while i < contests_comming.len() {
+        let mut count = 0;
+        while i + 1 < contests_comming.len() {
+            if contests_comming[i].2 == contests_comming[i + 1].2 {
+                // Same end date
+
+                contests_comming[i].0 = common_prefix(&contests_comming[i].0, &contests_comming[i + 1].0).to_string();
+                count += 1;
+                contests_comming.remove(i + 1);
+            } else {
+                break;
+            }
+        }
+        if count > 0 {
+            contests_comming[i].0 = format!("{}… ({}x)", contests_comming[i].0, count + 1);
+            contests_comming[i].1 = "?filter=current".to_string();
+        }
+        i += 1;
+    }
+
+    if contests_comming.len() > 0 {
+        data.insert("upcoming_contests".to_string(), to_json(&contests_comming));
+    }
 
     data.insert("parent".to_string(), to_json(&"base"));
     data.insert("index".to_string(), to_json(&true));
