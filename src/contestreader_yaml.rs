@@ -263,11 +263,6 @@ fn read_task_or_contest(p: &Path) -> Option<Vec<Contest>> {
 pub fn get_all_contest_info(task_dir: &str) -> Vec<Contest> {
     fn walk_me_recursively(p: &Path, contests: &mut Vec<Contest>) {
         if let Ok(paths) = std::fs::read_dir(p) {
-            {
-                use std::io::Write;
-                print!(".");
-                std::io::stdout().flush().unwrap();
-            }
             let mut paths: Vec<_> = paths.filter_map(|r| r.ok()).collect();
             paths.sort_by_key(|dir| dir.path());
             for path in paths {
@@ -278,6 +273,12 @@ pub fn get_all_contest_info(task_dir: &str) -> Vec<Contest> {
 
         let filename = p.file_name().unwrap().to_string_lossy().to_string();
         if filename.ends_with(".yaml") {
+            {
+                use std::io::Write;
+                print!(".");
+                std::io::stdout().flush().unwrap();
+            }
+
             read_task_or_contest(p).as_mut().map(|cs| contests.append(cs));
         };
     }

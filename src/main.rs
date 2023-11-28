@@ -70,11 +70,20 @@ fn refresh_all_contests<C>(conn: &mut C)
     conn.reset_all_contest_visibilities();
     conn.reset_all_taskgroup_visibilities();
 
+    print!("Scanning for contests … ");
     let v = contestreader_yaml::get_all_contest_info("tasks/");
+    println!(" Done");
 
+    print!("Storing contests information … ");
     for mut contest_info in v {
         contest_info.save(conn);
+        {
+            use std::io::Write;
+            print!(".");
+            std::io::stdout().flush().unwrap();
+        }
     }
+    println!(" Done");
 }
 
 fn add_admin_user<C>(conn: &mut C, resetpw: bool)
@@ -118,9 +127,7 @@ fn prepare_and_start_server<C>(mut conn: C, config: Config)
     db_apply_migrations::test(&mut conn);
 
     if config.only_contest_scan == Some(true) || config.no_contest_scan != Some(true) {
-        print!("Scanning for contests …");
         refresh_all_contests(&mut conn);
-        println!(" Done")
     }
 
     if config.only_contest_scan != Some(true) {
