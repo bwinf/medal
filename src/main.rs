@@ -160,6 +160,11 @@ fn open_browser_window(self_url: &str) {
 fn main() {
     let config = config::get_config();
 
+    if config.version == Some(true) {
+        println!("Medal version {}", &env!("CARGO_PKG_VERSION"));
+        return;
+    }
+
     #[cfg(feature = "debug")]
     println!("Using config: {:#?}", config);
 

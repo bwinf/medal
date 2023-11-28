@@ -55,6 +55,7 @@ pub struct Config {
     pub reset_admin_pw: Option<bool>,
     pub log_timing: Option<bool>,
     pub auto_save_interval: Option<u64>,
+    pub version: Option<bool>,
 }
 
 #[derive(StructOpt, Debug)]
@@ -115,6 +116,10 @@ struct Opt {
     /// Auto save interval in seconds (defaults to 10)
     #[structopt(long = "auto-save-interval")]
     pub autosaveinterval: Option<u64>,
+
+    /// Show version
+    #[structopt(long = "version")]
+    pub version: bool,
 }
 
 enum FileType {
@@ -194,6 +199,9 @@ fn merge_flag(into: &mut Option<bool>, from: bool) {
 
 pub fn get_config() -> Config {
     let opt = Opt::from_args();
+    if opt.version {
+        return Config { version: Some(true), ..Config::default() };
+    }
 
     #[cfg(feature = "debug")]
     println!("Options: {:#?}", opt);
