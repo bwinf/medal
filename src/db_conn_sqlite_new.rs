@@ -1410,7 +1410,7 @@ impl MedalConnection for Connection {
                      JOIN session ON session.id = participation.session
                      JOIN usergroup ON usergroup.id = session.managed_by
                      JOIN usergroup_admin ON usergroup_admin.usergroup = usergroup.id
-                     LEFT JOIN contest_tags USING (id)
+                     LEFT JOIN contest_tags ON contest.id = contest_tags.id
                      WHERE usergroup_admin.session = ?1
                      ORDER BY positionalnumber DESC";
         self.query_map_many(query, &[&session_id], |row| Contest { id: Some(row.get(0)),
