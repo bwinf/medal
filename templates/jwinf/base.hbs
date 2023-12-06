@@ -21,6 +21,16 @@
        .hoverfade:hover {
          filter: brightness(95%) saturate(110%);
        }
+       .flake {
+         pointer-events: none;
+         background-color: #ddddddaa;
+         width: 10px;
+         height: 10px;
+         border-radius: 5px;
+         position: fixed;
+         top: 0px;
+         left: 0px;
+       }
     </style>
   </head>
   <body style="background: {{#if config.server_message}}url(/static/images/testingdeployment.png){{else}}white{{/if}};">
@@ -28,10 +38,10 @@
       <div class="columns">
         <div class="column is-7">
           {{#if firstlogin }}
-            <img style="float:left; margin-right: 10px; height: 70px;" src="/static/images/logo.png">
+            <img id="logo" style="float:left; margin-right: 10px; height: 70px;" src="/static/images/logo.png">
           {{else}}
             <a href="/">
-              <img style="float:left; margin-right: 10px; height: 70px;" src="/static/images/logo.png">
+              <img id="logo" style="float:left; margin-right: 10px; height: 70px;" src="/static/images/logo.png">
             </a>
           {{/if}}
           <h1 class="title">Jugendwettbewerb Informatik</h1>
@@ -164,5 +174,55 @@
         </p>
       </div>
     </footer>
+    <script>
+      var date = new Date();
+      if (date.getMonth() == 11 && date.getDate() >= 22) {
+        if (Math.random() < 1.1) {
+          var imgs = document.getElementsByTagName("img");
+          for (var i = 0; i < imgs.length; i++) {
+            console.log(imgs[i].src);
+            if (imgs[i].src.endsWith("/static/images/logo.png")) {
+              imgs[i].src = "/static/images/logo_christmas.png";
+            }
+            if (imgs[i].src.endsWith("/static/images/white.png")) {
+              imgs[i].src = "/static/images/white_christmas.png";
+            }
+            if (imgs[i].src.endsWith("/static/images/green.png")) {
+              imgs[i].src = "/static/images/green_christmas.png";
+            }
+          }
+
+          var tops = [];
+          var lefts = [];
+          for (var k = 0; k < 100; k++) {
+            var div = document.createElement("div")
+            div.classList.add("flake");
+            tops.push(Math.random() * document.documentElement.clientHeight);
+            lefts.push(Math.random() * document.documentElement.clientWidth);
+            div.style.filter = "blur(" +  (2 + Math.random() * 5) +  "px)";
+            document.body.append(div);
+          }
+
+          flakes = document.getElementsByClassName("flake");
+
+          function run_snow() {
+            var height = document.documentElement.clientHeight;
+            var width = document.documentElement.clientWidth;
+            for (var j = 0; j < flakes.length; j++) {
+              var flake = flakes[j];
+              var r = Math.random() + (j / 100.0)
+              tp = (tops[j] + (r > 0.3 ? 11 : 11.2)) % (height + 10) - 10;
+              lt = (lefts[j] + (r > 0.94 ? 10.2 : r > 0.9 ? 9.8 : 10)) % (width + 10) - 10;
+              tops[j] = tp;
+              lefts[j] = lt;
+              flake.style.top = tp + "px";
+              flake.style.left = lt + "px";
+            }
+            setTimeout(run_snow, 40);
+          }
+          setTimeout(run_snow, 40);
+        }
+      }
+    </script>
   </body>
 </html>
