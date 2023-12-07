@@ -443,7 +443,9 @@ fn contests<C>(req: &mut Request) -> IronResult<Response>
     let query_string = req.url.query().unwrap_or("").to_string();
 
     // TODO: Move to core::* ?
-    let visibility = if query_string.contains("open") {
+    let visibility = if let Some(secret) = query_string.strip_prefix("secret=") {
+        core::ContestVisibility::WithSecret(secret.to_string())
+    } else if query_string.contains("open") {
         core::ContestVisibility::Open
     } else if query_string.contains("current") {
         core::ContestVisibility::Current

@@ -341,6 +341,7 @@ pub enum ContestVisibility {
     Current,
     LoginRequired,
     StandaloneTask,
+    WithSecret(String),
 }
 
 pub fn show_contests<T: MedalConnection>(conn: &T, session_token: &str, login_info: LoginInfo,
@@ -366,7 +367,14 @@ pub fn show_contests<T: MedalConnection>(conn: &T, session_token: &str, login_in
     let now = time::get_time();
     let v: Vec<ContestInfo> =
         contest_list.iter()
-                    .filter(|c| c.public)
+                    .filter(|c| c.public || matches!(visibility, ContestVisibility::WithSecret(_)))
+                    .filter(|c| {
+                        if let ContestVisibility::WithSecret(secret) = &visibility {
+                            c.secret.as_ref() == Some(secret)
+                        } else {
+                            true
+                        }
+                    })
                     .filter(|c| {
                         (!c.standalone_task.unwrap_or(false)) || visibility == ContestVisibility::StandaloneTask
                     })
@@ -406,6 +414,11 @@ pub fn show_contests<T: MedalConnection>(conn: &T, session_token: &str, login_in
 
     if visibility == ContestVisibility::StandaloneTask {
         data.insert("contests_training_header".to_string(), to_json(&"Einzelne Aufgaben ohne Wertung"));
+    }
+
+    if let ContestVisibility::WithSecret(secret) = visibility {
+        data.insert("secret".to_string(), to_json(&secret));
+        data.insert("has_secret".to_string(), to_json(&true));
     }
 
     Ok(("contests".to_owned(), data))

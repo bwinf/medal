@@ -127,7 +127,7 @@ document.getElementById("ziptrn").onclick = function() { download(generateListOf
           <div style="min-height: 400px; margin-bottom:100px;">
             <h3 class="title is-4">{{contests_contest_header}}{{#if ../direct_link_to_results }}: Ergebnisse einsehen{{/if}}</h3>
             {{#each contests_contest}}
-              <a href="/contest/{{ id }}{{#if ../direct_link_to_results }}/result/{{/if}}" class="contest">
+              <a href="/contest/{{ id }}{{#if ../direct_link_to_results }}/result/{{/if}}{{#if ../secret}}/{{../secret}}{{/if}}" class="contest">
                 <div class="notification {{#if ../direct_link_to_results }}is-info{{else}}is-success{{/if}}" style="margin-bottom:20px; padding: 4px;">
                   <div class="media">
                     <div class="media-left">
@@ -167,7 +167,7 @@ document.getElementById("ziptrn").onclick = function() { download(generateListOf
           <div style="min-height: 400px; margin-bottom:100px;">
             <h3 class="title is-4">{{contests_challenge_header}}{{#if ../direct_link_to_results }}: Ergebnisse einsehen{{/if}}</h3>
             {{#each contests_challenge}}
-              <a href="/contest/{{ id }}{{#if ../direct_link_to_results }}/result/{{/if}}" class="contest">
+              <a href="/contest/{{ id }}{{#if ../direct_link_to_results }}/result/{{/if}}{{#if ../secret}}/{{../secret}}{{/if}}" class="contest">
                 <div class="notification {{#if ../direct_link_to_results }}is-info{{else}}is-success{{/if}}" style="margin-bottom:20px; padding: 4px;">
                   <div class="media">
                     <div class="media-left">
@@ -207,7 +207,7 @@ document.getElementById("ziptrn").onclick = function() { download(generateListOf
           <div style="min-height: 400px; margin-bottom:100px;" id="movefrom">
             <h3 class="title is-4">{{contests_training_header}}{{#if ../direct_link_to_results }}: Ergebnisse einsehen{{/if}}</h3>
             {{#each contests_training}}
-              <a href="/contest/{{ id }}{{#if ../direct_link_to_results }}/result/{{/if}}" class="contest">
+              <a href="/contest/{{ id }}{{#if ../direct_link_to_results }}/result/{{/if}}{{#if ../secret}}/{{../secret}}{{/if}}" class="contest">
                 {{#each tags }}
                   <span class="tag is-rounded">{{ this }}</span>
                 {{/each}}
@@ -259,6 +259,22 @@ document.getElementById("ziptrn").onclick = function() { download(generateListOf
           </div>
         </div>
       {{/unless}}{{/unless}}{{/unless}}
+
+      {{#if has_secret}}
+        <div class="columns">
+          <div class="column is-4 is-offset-2">
+            <div style="min-height: 400px; margin-bottom:100px;">
+              <h3 class="title is-4">Passwortgeschützte Wettbewerbe</h3>
+              <p>
+                <form action="" method="get">
+                  <input name="secret" value="{{secret}}" placeholder="Wettbewerbspasswort"><br>&nbsp;<br>
+                  <input class="button is-warning is-small" type="submit" value="Suchen" style="font-weight:bold;">
+                </form>
+              </p>
+            </div>
+          </div>
+        </div>
+      {{/if}}
 
 <script>
 document.getElementById("movefrom").childNodes.forEach((node) => {
