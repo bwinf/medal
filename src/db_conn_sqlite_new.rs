@@ -199,7 +199,7 @@ impl MedalObject<Connection> for Task {
 
 impl MedalObject<Connection> for Taskgroup {
     fn save(&mut self, conn: &Connection) {
-        if let Some(first_task) = self.tasks.get(0) {
+        if let Some(first_task) = self.tasks.first() {
             let query = "SELECT taskgroup.id
                          FROM taskgroup
                          JOIN task
