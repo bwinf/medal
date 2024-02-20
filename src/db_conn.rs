@@ -153,6 +153,7 @@ pub trait MedalConnection {
     fn find_next_submission_to_validate(&self, userid: i32, taskgroupid: i32);
 
     fn add_group(&self, group: &mut Group);
+    fn save_group(&self, group: &mut Group);
     fn get_groups(&self, session_id: i32) -> Vec<Group>;
     fn get_groups_complete(&self, session_id: i32) -> Vec<Group>;
     fn get_group(&self, session_id: i32) -> Option<Group>;

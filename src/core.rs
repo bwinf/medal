@@ -1290,10 +1290,6 @@ pub fn show_group<T: MedalConnection>(conn: &T, group_id: i32, session_token: &s
     Ok(("group".to_string(), data))
 }
 
-pub fn modify_group<T: MedalConnection>(_conn: &T, _group_id: i32, _session_token: &str) -> MedalResult<()> {
-    unimplemented!()
-}
-
 pub fn add_group<T: MedalConnection>(conn: &T, session_token: &str, csrf_token: &str, name: String, tag: String)
                                      -> MedalResult<i32> {
     let session = conn.get_session(&session_token)
@@ -2025,6 +2021,7 @@ pub fn group_add_admin<T: MedalConnection>(conn: &T, group_id: i32, teacher_id: 
 
     let mut group = conn.get_group(group_id).unwrap(); // TODO handle error
 
+    // TODO: Also allow for server admin
     if !group.admins.contains(&session.id) {
         return Err(MedalError::AccessDenied);
     }
@@ -2086,6 +2083,67 @@ pub fn admin_delete_group<T: MedalConnection>(conn: &T, group_id: i32, session_t
         conn.delete_group(group_id);
         Ok(("delete_ok".to_string(), data))
     }
+}
+
+pub fn admin_show_edit_group<T: MedalConnection>(conn: &T, group_id: i32, session_token: &str) -> MedalValueResult {
+    let session = conn.get_session(&session_token)
+                      .ensure_logged_in()
+                      .ok_or(MedalError::NotLoggedIn)?
+                      .ensure_teacher_or_admin()
+                      .ok_or(MedalError::AccessDenied)?;
+
+    let group = conn.get_group_complete(group_id).unwrap(); // TODO handle error
+
+    if !session.is_admin() {
+        // Check access for teachers
+        if !group.admins.contains(&session.id) {
+            return Err(MedalError::AccessDenied);
+        }
+    }
+
+    let mut data = json_val::Map::new();
+    fill_user_data(&session, &mut data);
+
+    let gi = GroupInfo { id: group.id.unwrap(),
+                         name: group.name.clone(),
+                         tag: group.tag.clone(),
+                         code: group.groupcode.clone() };
+
+    data.insert("group".to_string(), to_json(&gi));
+    data.insert("groupname".to_string(), to_json(&gi.name));
+    data.insert("grouptag".to_string(), to_json(&gi.name));
+
+    Ok(("admin_edit_group".to_string(), data))
+}
+
+pub fn admin_edit_group<T: MedalConnection>(conn: &T, group_id: i32, session_token: &str, csrf_token: &str,
+                                            name: String, tag: String)
+                                            -> MedalResult<()> {
+    let session = conn.get_session(&session_token)
+                      .ensure_logged_in()
+                      .ok_or(MedalError::NotLoggedIn)?
+                      .ensure_teacher_or_admin()
+                      .ok_or(MedalError::AccessDenied)?;
+
+    if session.csrf_token != csrf_token {
+        return Err(MedalError::CsrfCheckFailed);
+    }
+
+    let mut group = conn.get_group_complete(group_id).unwrap(); // TODO handle error
+
+    if !session.is_admin() {
+        // Check access for teachers
+        if !group.admins.contains(&session.id) {
+            return Err(MedalError::AccessDenied);
+        }
+    }
+
+    group.name = name;
+    group.tag = tag;
+
+    conn.save_group(&mut group);
+
+    Ok(())
 }
 
 #[derive(Serialize, Deserialize, Debug)]

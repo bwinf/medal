@@ -142,12 +142,16 @@ impl MedalObject<Connection> for Participation {
 impl MedalObject<Connection> for Group {
     fn save(&mut self, conn: &Connection) {
         match self.get_id() {
-            Some(_id) => unimplemented!(),
+            Some(id) => {
+                let query = "UPDATE usergroup
+                             SET name = $2, groupcode = $3, tag = $4
+                             WHERE id = $1";
+                conn.execute(query, &[&id, &self.name, &self.groupcode, &self.tag]).unwrap();
+            }
             None => {
                 let query = "INSERT INTO usergroup (name, groupcode, tag, group_created)
                              VALUES ($1, $2, $3, $4)";
                 let now = time::get_time();
-                println!("{:?}", now);
                 conn.execute(query, &[&self.name, &self.groupcode, &self.tag, &now]).unwrap();
                 self.set_id(conn.get_last_id().unwrap());
 
@@ -177,9 +181,9 @@ impl MedalObject<Connection> for Task {
         let id = match self.get_id() {
             Some(id) => {
                 let query = "UPDATE task
-                             SET taskgroup = $1, location = $2, language = $3, stars = $4
-                             WHERE id = $5";
-                conn.execute(query, &[&self.taskgroup, &self.location, &self.language, &self.stars, &id]).unwrap();
+                             SET taskgroup = $2, location = $3, language = $4, stars = $5
+                             WHERE id = $1";
+                conn.execute(query, &[&id, &self.taskgroup, &self.location, &self.language, &self.stars]).unwrap();
                 id
             }
             None => {
@@ -1816,6 +1820,8 @@ impl MedalConnection for Connection {
     }
 
     fn add_group(&self, group: &mut Group) { group.save(self); }
+
+    fn save_group(&self, group: &mut Group) { group.save(self); }
 
     fn get_groups(&self, session_id: i32) -> Vec<Group> {
         let query = "SELECT id, name, groupcode, tag

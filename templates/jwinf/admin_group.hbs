@@ -21,7 +21,7 @@
 <div class="columns">
   <div class="column is-8 is-offset-2">
     <h3 class="title is-4"><em>{{group.name}}</em></h3>
-    <h4 class="subtitle is-5">Gruppe{{#if group.tag}} (Klassen-/Kursbez.: {{group.tag}}){{/if}}</h4>
+    <h4 class="subtitle is-5">Gruppe{{#if group.tag}} (Klassen-/Kursbez.: <b>{{group.tag}}</b>){{/if}}</h4>
   </div>
 </div>
 
@@ -57,6 +57,13 @@
 
   </div>
   <div class="column is-3">
+
+
+    <h4 class="title is-6">Gruppe umbenennen / Gruppenkürzel ändern</h4>
+    <p>
+      <a href="{{group.id}}/edit">✎ Gruppe bearbeiten</a>
+    </p>
+    <hr>
     <h4 class="title is-6">Gruppe „{{group.name}}“ löschen:</h4>
     <div id="delete">
       <form action="" method="post" id="deleteform">
@@ -160,6 +167,17 @@
       </em>
     </p>
     {{/if}}
+  </div>
+</div>
+
+
+<div class="columns">
+  <div class="column is-8 is-offset-2">
+    <hr>
+    <h4 class="subtitle is-5">Gruppe umbenennen / Gruppenkürzel ändern</h4>
+    <p>
+      <a href="{{group.id}}/edit">✎ Gruppe bearbeiten</a>
+    </p>
   </div>
 </div>
 

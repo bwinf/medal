@@ -1140,6 +1140,31 @@ fn admin_group<C>(req: &mut Request) -> IronResult<Response>
     Ok(resp)
 }
 
+fn admin_group_edit<C>(req: &mut Request) -> IronResult<Response>
+    where C: MedalConnection + std::marker::Send + 'static {
+    let group_id = req.expect_int::<i32>("groupid")?;
+    let session_token = req.expect_session_token()?;
+    let config = req.get::<Read<SharedConfiguration>>().unwrap();
+
+    if let Ok(formdata) = req.get_ref::<UrlEncodedBody>() {
+        let csrf_token = iexpect!(formdata.get("csrf_token"))[0].to_owned();
+        let name = iexpect!(formdata.get("new_groupname"))[0].to_owned();
+        let tag = iexpect!(formdata.get("new_grouptag"))[0].to_owned();
+
+        with_conn![core::admin_edit_group, C, req, group_id, &session_token, &csrf_token, name, tag].aug(req)?;
+
+        Ok(Response::with((status::Found, Redirect(url_for!(req, "group", "groupid" => format!("{}",group_id))))))
+    } else {
+        let (template, mut data) = with_conn![core::admin_show_edit_group, C, req, group_id, &session_token].aug(req)?;
+
+        data.insert("config".to_string(), to_json(&config.template_params));
+
+        let mut resp = Response::new();
+        resp.set_mut(Template::new(&template, data)).set_mut(status::Ok);
+        Ok(resp)
+    }
+}
+
 fn group_addadmin<C>(req: &mut Request) -> IronResult<Response>
     where C: MedalConnection + std::marker::Send + 'static {
     let group_id = req.expect_int::<i32>("groupid")?;
@@ -1606,6 +1631,8 @@ pub fn start_server<C>(conn: C, config: Config) -> iron::error::HttpResult<iron:
         groups: post "/group/" => new_group::<C>,
         group: get "/group/:groupid" => admin_group::<C>,
         group_post: post "/group/:groupid" => admin_group::<C>,
+        group_edit: get "/group/:groupid/edit" => admin_group_edit::<C>,
+        group_edit_post: post "/group/:groupid/edit" => admin_group_edit::<C>,
         group_addadmin: post "/group/:groupid/addadmin" => group_addadmin::<C>,
         group_download: get "/group/download/:groupid" => group_download::<C>,
         //group_post: post "/group" => group_post::<C>,
@@ -1626,6 +1653,8 @@ pub fn start_server<C>(conn: C, config: Config) -> iron::error::HttpResult<iron:
         admin_user_post: post "/admin/user/:userid" => admin_user::<C>,
         admin_group: get "/admin/group/:groupid" => admin_group::<C>,
         admin_group_post: post "/admin/group/:groupid" => admin_group::<C>,
+        admin_group_edit: get "/admin/group/:groupid/edit" => admin_group_edit::<C>,
+        admin_group_edit_post: post "/admin/group/:groupid/edit" => admin_group_edit::<C>,
         admin_participation: get "/admin/user/:userid/:contestid" => admin_participation::<C>,
         admin_participation_post: post "/admin/user/:userid/:contestid" => admin_participation::<C>,
         admin_contests: get "/admin/contest/" => admin_contests::<C>,
