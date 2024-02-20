@@ -1,0 +1,66 @@
+{{#*inline "page"}}
+
+<div class="columns">
+  <div class="column is-12 is-offset-1">
+    <nav class="breadcrumb" aria-label="breadcrumbs">
+      <ul>
+        <li></li>
+        <li><a href="/">JWINF</a></li>
+        {{#if is_admin}}
+        <li><a href="/admin/">Administration</a></li>
+        <li class="is-active"><a href=".">Gruppen</a></li>
+        <li><a href="."><em>{{group.name}}</em></a></li>
+        {{else}}
+        <li><a href="/group">Gruppen</a></li>
+        <li><a href="."><em>{{group.name}}</em></a></li>
+        {{/if}}
+        <li class="is-active"><a href="">Bearbeiten</a></li>
+      </ul>
+    </nav>
+  </div>
+</div>
+
+<div class="columns">
+   <div class="column is-8 is-offset-2">
+      <h3 class="title is-4">
+        <em>{{group.name}}</em>
+      </h3>
+   </div>
+</div>
+
+<div class="columns">
+  <div class="column is-4 is-offset-2">
+    <h4 class="subtitle is-5">Gruppe bearbeiten</h4>
+    <p>
+      <form action="" method="post">
+        <div class="field">
+          <label class="label">Neuer Gruppenname</label>
+          <div class="control">
+            <input name="new_groupname" class="input" type="text" value="{{ group.name }}" required>
+          </div>
+        </div>
+        <div class="field">
+          <label class="label">Neue Klassen-/Kursbezeichnung</label>
+          <div class="control">
+            <input name="new_grouptag" class="input" type="text" value="{{ group.tag }}" placeholder="optional">
+          </div>
+        </div>
+        <div class="field is-grouped">
+          <div class="control">
+            <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+            <input type="submit" class="button is-link" value="Gruppeninformationen speichern">
+          </div>
+        </div>
+      </form>
+  </div>
+</div>
+
+<div class="columns">
+  <div class="column is-8 is-offset-2">
+    <hr>
+    Die Klassen-/Kursbezeichnung ist optional. Sie wird auf die Urkunden gedruckt und die Urkunden werden danach sortiert.
+  </div>
+</div>
+
+{{/inline}}
+{{~> (parent)~}}
