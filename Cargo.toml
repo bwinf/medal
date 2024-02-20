@@ -1,5 +1,5 @@
 [package]
-version = "1.18.0"
+version = "1.19.0"
 name = "medal"
 authors = ["Robert Czechowski <czechowski@bwinf.de>", "Daniel Brüning <bruening@bwinf.de>"]
 
