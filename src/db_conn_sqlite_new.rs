@@ -2108,7 +2108,7 @@ impl MedalConnection for Connection {
                           OR (last_login IS NULL AND last_activity < ?2)
                           OR (last_login IS NULL AND last_activity IS NULL AND account_created < ?2))";
         if let Some(maxteacherage) = maxteacherage {
-            let teachers: Vec<i32> = self.query_map_many(query, &[&true, &maxteacherage], |row| row.get(1)).unwrap();
+            let teachers: Vec<i32> = self.query_map_many(query, &[&true, &maxteacherage], |row| row.get(0)).unwrap();
 
             // Only remove if no groups are remaining
             let query = "SELECT count(*)
