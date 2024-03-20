@@ -2112,8 +2112,8 @@ impl MedalConnection for Connection {
 
             // Only remove if no groups are remaining
             let query = "SELECT count(*)
-                         FROM usergroup
-                         WHERE admin = $1;";
+                         FROM usergroup_admin
+                         WHERE session = $1;";
             for teacher in teachers {
                 let groupcount: i64 = self.query_map_one(query, &[&teacher], |row| row.get(0)).unwrap().unwrap();
 
