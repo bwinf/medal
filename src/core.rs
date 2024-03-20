@@ -2327,6 +2327,11 @@ pub fn admin_show_cleanup<T: MedalConnection>(conn: &T, session_token: &str) -> 
     let mut data = json_val::Map::new();
     fill_user_data(&session, &mut data);
 
+    let now = time::get_time();
+    let maxage = now - time::Duration::days(30); // Count all temporary sessions with 30 days of inactivity
+    let n_temporary_session = conn.count_temporary_sessions(maxage);
+    data.insert("temporary_session_count".to_string(), to_json(&n_temporary_session));
+
     Ok(("admin_cleanup".to_string(), data))
 }
 
@@ -2362,19 +2367,14 @@ pub fn admin_do_cleanup<T: MedalConnection>(conn: &T, session_token: &str, csrf_
 
 pub fn do_session_cleanup<T: MedalConnection>(conn: &T) -> MedalValueResult {
     let now = time::get_time();
-    let maxage = now - time::Duration::days(30); // Delete all temporary sessions after 30 days
+    let maxage = now - time::Duration::days(30); // Delete all temporary sessions after 30 days of inactivity
 
-    let result = conn.remove_temporary_sessions(maxage);
+    conn.remove_temporary_sessions(maxage, Some(1000));
 
     let mut data = json_val::Map::new();
-    if let Ok((n_session, last_cleanup)) = result {
-        let infodata = format!(",\"n_session\":{},\"last_cleanup\":{:?}", n_session, last_cleanup);
-        data.insert("data".to_string(), to_json(&infodata));
-        Ok(("delete_ok".to_string(), data))
-    } else {
-        data.insert("reason".to_string(), to_json(&"Fehler."));
-        Ok(("delete_fail".to_string(), data))
-    }
+    let infodata = "".to_string();
+    data.insert("data".to_string(), to_json(&infodata));
+    Ok(("delete_ok".to_string(), data))
 }
 
 #[derive(PartialEq, Eq, Clone, Copy)]
@@ -2419,6 +2419,14 @@ pub fn login_oauth<T: MedalConnection>(conn: &T, user_data: ForeignUserData, oau
             } else {
                 true
             };
+
+            // While we're at it, lets also remove some old sessions! OAuth took
+            // some time anyway, so we can afford spending some additional
+            // milliseconds …
+            let now = time::get_time();
+            let maxage = now - time::Duration::days(30); // Delete all temporary sessions after 30 days of inactivity
+            conn.remove_temporary_sessions(maxage, Some(200));
+
             Ok((session_token, redirect_profile))
         }
         Err(()) => {

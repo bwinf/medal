@@ -2150,56 +2150,42 @@ impl MedalConnection for Connection {
         Ok((n_users, n_groups, n_teachers, n_other))
     }
 
-    fn remove_temporary_sessions(&self, maxage: time::Timespec) -> Result<(i32, String), ()> {
-        // WARNING: This function could possibly be dangerous if the login possibilities change in a way
-        // that not every possibility is covered her …
-        // TODO: How can we make sure, this function is always safe, even in cases of changes elsewhere?
-
-        let now = time::get_time();
-        let cache_key = "last_cleanup";
-
-        let query = "SELECT value, date
-                     FROM string_cache
-                     WHERE key = ?1";
-
-        let cache =
-            self.query_map_one(query, &[&cache_key], |row| -> (String, time::Timespec) { (row.get(0), row.get(1)) })
-                .unwrap();
-        if let Some((ref cached_value, cache_date)) = cache {
-            // Cache invalidates once per hour
-            if cache_date.sec / (60 * 60) >= now.sec / (60 * 60) {
-                return Ok((cached_value.parse().unwrap_or(-1), self::time::strftime("%e. %b %Y, %H:%M", &time::at(cache_date)).unwrap_or("could not format".to_string())));
-            }
-        }
-
+    fn count_temporary_sessions(&self, maxage: time::Timespec) -> i32 {
         let query = "SELECT count(*)
                      FROM session
                      WHERE (last_activity < ?1 OR last_activity IS NULL)
                      AND logincode IS NULL
                      AND password IS NULL
                      AND oauth_foreign_id IS NULL";
-        let n_session = self.query_map_one(query, &[&maxage], |row| row.get::<_, i64>(0) as i32).unwrap().unwrap();
+        self.query_map_one(query, &[&maxage], |row| row.get::<_, i64>(0) as i32).unwrap().unwrap()
+    }
 
-        let query = "DELETE
-                     FROM session
-                     WHERE (last_activity < ?1 OR last_activity IS NULL)
-                     AND logincode IS NULL
-                     AND password IS NULL
-                     AND oauth_foreign_id IS NULL";
-        self.execute(query, &[&maxage]).unwrap();
+    fn remove_temporary_sessions(&self, maxage: time::Timespec, limit: Option<u32>) {
+        // WARNING: This function could possibly be dangerous if the login possibilities change in a way
+        // that not every possibility is covered her …
+        // TODO: How can we make sure, this function is always safe, even in cases of changes elsewhere?
 
-        let result = format!("{}", n_session);
-        let query = if cache.is_some() {
-            "UPDATE string_cache
-             SET value = ?2, date = ?3
-             WHERE key = ?1"
+        if let Some(limit) = limit {
+            let query = "DELETE
+                         FROM session
+                         WHERE id IN (SELECT id
+                                      FROM session
+                                      WHERE (last_activity < ?1 OR last_activity IS NULL)
+                                      AND logincode IS NULL
+                                      AND password IS NULL
+                                      AND oauth_foreign_id IS NULL
+                                      ORDER BY last_activity
+                                      LIMIT ?2)";
+            self.execute(query, &[&maxage, &(limit as i64)]).unwrap();
         } else {
-            "INSERT INTO string_cache (key, value, date)
-             VALUES (?1, ?2, ?3)"
-        };
-        self.execute(query, &[&cache_key, &result, &now]).unwrap();
-
-        Ok((n_session, self::time::strftime("%e. %b %Y, %H:%M", &time::at(cache.unwrap_or(("".to_string(), now)).1)).unwrap_or("could not format".to_string())))
+            let query = "DELETE
+                         FROM session
+                         WHERE (last_activity < ?1 OR last_activity IS NULL)
+                         AND logincode IS NULL
+                         AND password IS NULL
+                         AND oauth_foreign_id IS NULL";
+            self.execute(query, &[&maxage]).unwrap();
+        }
     }
 
     fn get_debug_information(&self) -> String {
