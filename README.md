@@ -16,11 +16,11 @@ It is designed for the German "Jugendwettbewerb Informatik", a computer science 
 ## Screenshots
 
 [![Index](static/images/screenshots/tn_index.png)](static/images/screenshots/index.png)
-[![Index](static/images/screenshots/tn_training_list.png)](static/images/screenshots/training_list.png)
-[![Index](static/images/screenshots/tn_training.png)](static/images/screenshots/training.png)
-[![Index](static/images/screenshots/tn_task.png)](static/images/screenshots/task.png)
-[![Index](static/images/screenshots/tn_task_solved.png)](static/images/screenshots/task_solved.png)
-[![Index](static/images/screenshots/tn_group_list.png)](static/images/screenshots/group_list.png)
+[![Training list](static/images/screenshots/tn_training_list.png)](static/images/screenshots/training_list.png)
+[![Training](static/images/screenshots/tn_training.png)](static/images/screenshots/training.png)
+[![Task](static/images/screenshots/tn_task.png)](static/images/screenshots/task.png)
+[![Task solved](static/images/screenshots/tn_task_solved.png)](static/images/screenshots/task_solved.png)
+[![Group listing](static/images/screenshots/tn_group_list.png)](static/images/screenshots/group_list.png)
 
 ## Translation
 
@@ -166,6 +166,10 @@ Format the code and check for warnings with
 make format
 make clippy
 ```
+
+## Database structure
+
+![Database schema](doc/db.svg)
 
 ## Folder structure (development)
 

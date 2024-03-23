@@ -1,0 +1,659 @@
+
+digraph structs {
+
+
+rankdir="RL"
+
+
+node [shape=none]
+
+contest [label=<
+            <TABLE BORDER="0" CELLSPACING="0" CELLBORDER="1">
+                <TR>
+                    <TD COLSPAN="2"><B>contest</B></TD>
+                </TR>
+            
+                <TR>
+                    <TD PORT="id_to">🔑</TD>
+                    <TD PORT="id_from">id</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="location_to">&nbsp;</TD>
+                    <TD PORT="location_from">location</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="filename_to">&nbsp;</TD>
+                    <TD PORT="filename_from">filename</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="name_to">&nbsp;</TD>
+                    <TD PORT="name_from">name</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="duration_to">&nbsp;</TD>
+                    <TD PORT="duration_from">duration</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="public_to">&nbsp;</TD>
+                    <TD PORT="public_from">public</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="start_date_to">&nbsp;</TD>
+                    <TD PORT="start_date_from">start_date</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="end_date_to">&nbsp;</TD>
+                    <TD PORT="end_date_from">end_date</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="message_to">&nbsp;</TD>
+                    <TD PORT="message_from">message</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="min_grade_to">&nbsp;</TD>
+                    <TD PORT="min_grade_from">min_grade</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="max_grade_to">&nbsp;</TD>
+                    <TD PORT="max_grade_from">max_grade</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="positionalnumber_to">&nbsp;</TD>
+                    <TD PORT="positionalnumber_from">positionalnumber</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="requires_login_to">&nbsp;</TD>
+                    <TD PORT="requires_login_from">requires_login</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="review_start_date_to">&nbsp;</TD>
+                    <TD PORT="review_start_date_from">review_start_date</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="review_end_date_to">&nbsp;</TD>
+                    <TD PORT="review_end_date_from">review_end_date</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="secret_to">&nbsp;</TD>
+                    <TD PORT="secret_from">secret</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="requires_contest_to">&nbsp;</TD>
+                    <TD PORT="requires_contest_from">requires_contest</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="protected_to">&nbsp;</TD>
+                    <TD PORT="protected_from">protected</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="image_to">&nbsp;</TD>
+                    <TD PORT="image_from">image</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="language_to">&nbsp;</TD>
+                    <TD PORT="language_from">language</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="category_to">&nbsp;</TD>
+                    <TD PORT="category_from">category</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="standalone_task_to">&nbsp;</TD>
+                    <TD PORT="standalone_task_from">standalone_task</TD>
+                </TR>
+            
+            </TABLE>
+        >];
+        
+contest_tags [label=<
+            <TABLE BORDER="0" CELLSPACING="0" CELLBORDER="1">
+                <TR>
+                    <TD COLSPAN="2"><B>contest_tags</B></TD>
+                </TR>
+            
+                <TR>
+                    <TD PORT="id_to">🔑</TD>
+                    <TD PORT="id_from">id</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="tags_to">&nbsp;</TD>
+                    <TD PORT="tags_from">tags</TD>
+                </TR>
+            
+            </TABLE>
+        >];
+        
+grade [label=<
+            <TABLE BORDER="0" CELLSPACING="0" CELLBORDER="1">
+                <TR>
+                    <TD COLSPAN="2"><B>grade</B></TD>
+                </TR>
+            
+                <TR>
+                    <TD PORT="taskgroup_to">🔑</TD>
+                    <TD PORT="taskgroup_from">taskgroup</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="session_to">🔑</TD>
+                    <TD PORT="session_from">session</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="grade_to">&nbsp;</TD>
+                    <TD PORT="grade_from">grade</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="validated_to">&nbsp;</TD>
+                    <TD PORT="validated_from">validated</TD>
+                </TR>
+            
+            </TABLE>
+        >];
+        
+migrations [label=<
+            <TABLE BORDER="0" CELLSPACING="0" CELLBORDER="1">
+                <TR>
+                    <TD COLSPAN="2"><B>migrations</B></TD>
+                </TR>
+            
+                <TR>
+                    <TD PORT="name_to">🔑</TD>
+                    <TD PORT="name_from">name</TD>
+                </TR>
+            
+            </TABLE>
+        >];
+        
+participation [label=<
+            <TABLE BORDER="0" CELLSPACING="0" CELLBORDER="1">
+                <TR>
+                    <TD COLSPAN="2"><B>participation</B></TD>
+                </TR>
+            
+                <TR>
+                    <TD PORT="contest_to">🔑</TD>
+                    <TD PORT="contest_from">contest</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="session_to">🔑</TD>
+                    <TD PORT="session_from">session</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="start_date_to">&nbsp;</TD>
+                    <TD PORT="start_date_from">start_date</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="annotation_to">&nbsp;</TD>
+                    <TD PORT="annotation_from">annotation</TD>
+                </TR>
+            
+            </TABLE>
+        >];
+        
+session [label=<
+            <TABLE BORDER="0" CELLSPACING="0" CELLBORDER="1">
+                <TR>
+                    <TD COLSPAN="2"><B>session</B></TD>
+                </TR>
+            
+                <TR>
+                    <TD PORT="id_to">🔑</TD>
+                    <TD PORT="id_from">id</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="session_token_to">&nbsp;</TD>
+                    <TD PORT="session_token_from">session_token</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="csrf_token_to">&nbsp;</TD>
+                    <TD PORT="csrf_token_from">csrf_token</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="last_login_to">&nbsp;</TD>
+                    <TD PORT="last_login_from">last_login</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="last_activity_to">&nbsp;</TD>
+                    <TD PORT="last_activity_from">last_activity</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="permanent_login_to">&nbsp;</TD>
+                    <TD PORT="permanent_login_from">permanent_login</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="username_to">&nbsp;</TD>
+                    <TD PORT="username_from">username</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="password_to">&nbsp;</TD>
+                    <TD PORT="password_from">password</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="salt_to">&nbsp;</TD>
+                    <TD PORT="salt_from">salt</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="logincode_to">&nbsp;</TD>
+                    <TD PORT="logincode_from">logincode</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="email_to">&nbsp;</TD>
+                    <TD PORT="email_from">email</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="email_unconfirmed_to">&nbsp;</TD>
+                    <TD PORT="email_unconfirmed_from">email_unconfirmed</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="email_confirmationcode_to">&nbsp;</TD>
+                    <TD PORT="email_confirmationcode_from">email_confirmationcode</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="firstname_to">&nbsp;</TD>
+                    <TD PORT="firstname_from">firstname</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="lastname_to">&nbsp;</TD>
+                    <TD PORT="lastname_from">lastname</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="street_to">&nbsp;</TD>
+                    <TD PORT="street_from">street</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="zip_to">&nbsp;</TD>
+                    <TD PORT="zip_from">zip</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="city_to">&nbsp;</TD>
+                    <TD PORT="city_from">city</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="nation_to">&nbsp;</TD>
+                    <TD PORT="nation_from">nation</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="grade_to">&nbsp;</TD>
+                    <TD PORT="grade_from">grade</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="is_teacher_to">&nbsp;</TD>
+                    <TD PORT="is_teacher_from">is_teacher</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="managed_by_to">&nbsp;</TD>
+                    <TD PORT="managed_by_from">managed_by</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="oauth_foreign_id_to">&nbsp;</TD>
+                    <TD PORT="oauth_foreign_id_from">oauth_foreign_id</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="oauth_provider_to">&nbsp;</TD>
+                    <TD PORT="oauth_provider_from">oauth_provider</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="account_created_to">&nbsp;</TD>
+                    <TD PORT="account_created_from">account_created</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="is_admin_to">&nbsp;</TD>
+                    <TD PORT="is_admin_from">is_admin</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="sex_to">&nbsp;</TD>
+                    <TD PORT="sex_from">sex</TD>
+                </TR>
+            
+            </TABLE>
+        >];
+        
+string_cache [label=<
+            <TABLE BORDER="0" CELLSPACING="0" CELLBORDER="1">
+                <TR>
+                    <TD COLSPAN="2"><B>string_cache</B></TD>
+                </TR>
+            
+                <TR>
+                    <TD PORT="key_to">🔑</TD>
+                    <TD PORT="key_from">key</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="value_to">&nbsp;</TD>
+                    <TD PORT="value_from">value</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="date_to">&nbsp;</TD>
+                    <TD PORT="date_from">date</TD>
+                </TR>
+            
+            </TABLE>
+        >];
+        
+submission [label=<
+            <TABLE BORDER="0" CELLSPACING="0" CELLBORDER="1">
+                <TR>
+                    <TD COLSPAN="2"><B>submission</B></TD>
+                </TR>
+            
+                <TR>
+                    <TD PORT="id_to">🔑</TD>
+                    <TD PORT="id_from">id</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="task_to">&nbsp;</TD>
+                    <TD PORT="task_from">task</TD>
+                </TR>
+
+
+                <TR>
+                    <TD PORT="session_to">&nbsp;</TD>
+                    <TD PORT="session_from">session</TD>
+                </TR>
+                        
+
+                <TR>
+                    <TD PORT="grade_to">&nbsp;</TD>
+                    <TD PORT="grade_from">grade</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="validated_to">&nbsp;</TD>
+                    <TD PORT="validated_from">validated</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="needs_validation_to">&nbsp;</TD>
+                    <TD PORT="needs_validation_from">needs_validation</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="nonvalidated_grade_to">&nbsp;</TD>
+                    <TD PORT="nonvalidated_grade_from">nonvalidated_grade</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="subtask_identifier_to">&nbsp;</TD>
+                    <TD PORT="subtask_identifier_from">subtask_identifier</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="value_to">&nbsp;</TD>
+                    <TD PORT="value_from">value</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="date_to">&nbsp;</TD>
+                    <TD PORT="date_from">date</TD>
+                </TR>
+            
+            </TABLE>
+        >];
+        
+task [label=<
+            <TABLE BORDER="0" CELLSPACING="0" CELLBORDER="1">
+                <TR>
+                    <TD COLSPAN="2"><B>task</B></TD>
+                </TR>
+            
+                <TR>
+                    <TD PORT="id_to">🔑</TD>
+                    <TD PORT="id_from">id</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="taskgroup_to">&nbsp;</TD>
+                    <TD PORT="taskgroup_from">taskgroup</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="location_to">&nbsp;</TD>
+                    <TD PORT="location_from">location</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="stars_to">&nbsp;</TD>
+                    <TD PORT="stars_from">stars</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="language_to">&nbsp;</TD>
+                    <TD PORT="language_from">language</TD>
+                </TR>
+            
+            </TABLE>
+        >];
+        
+taskgroup [label=<
+            <TABLE BORDER="0" CELLSPACING="0" CELLBORDER="1">
+                <TR>
+                    <TD COLSPAN="2"><B>taskgroup</B></TD>
+                </TR>
+            
+                <TR>
+                    <TD PORT="id_to">🔑</TD>
+                    <TD PORT="id_from">id</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="contest_to">&nbsp;</TD>
+                    <TD PORT="contest_from">contest</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="name_to">&nbsp;</TD>
+                    <TD PORT="name_from">name</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="active_to">&nbsp;</TD>
+                    <TD PORT="active_from">active</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="positionalnumber_to">&nbsp;</TD>
+                    <TD PORT="positionalnumber_from">positionalnumber</TD>
+                </TR>
+            
+            </TABLE>
+        >];
+        
+usergroup [label=<
+            <TABLE BORDER="0" CELLSPACING="0" CELLBORDER="1">
+                <TR>
+                    <TD COLSPAN="2"><B>usergroup</B></TD>
+                </TR>
+            
+                <TR>
+                    <TD PORT="id_to">🔑</TD>
+                    <TD PORT="id_from">id</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="name_to">&nbsp;</TD>
+                    <TD PORT="name_from">name</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="groupcode_to">&nbsp;</TD>
+                    <TD PORT="groupcode_from">groupcode</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="tag_to">&nbsp;</TD>
+                    <TD PORT="tag_from">tag</TD>
+                </TR>
+            
+
+                <TR>
+                    <TD PORT="group_created_to">&nbsp;</TD>
+                    <TD PORT="group_created_from">group_created</TD>
+                </TR>
+            
+            </TABLE>
+        >];
+        
+usergroup_admin [label=<
+            <TABLE BORDER="0" CELLSPACING="0" CELLBORDER="1">
+                <TR>
+                    <TD COLSPAN="2"><B>usergroup_admin</B></TD>
+                </TR>
+                        
+
+                <TR>
+                    <TD PORT="session_to">🔑</TD>
+                    <TD PORT="session_from">session</TD>
+                </TR>
+            
+                <TR>
+                    <TD PORT="usergroup_to">🔑</TD>
+                    <TD PORT="usergroup_from">usergroup</TD>
+                </TR>
+
+            </TABLE>
+        >];
+        
+usergroup_admin:session_to:w -> session:id_from:e
+usergroup_admin:usergroup_to:w -> usergroup:id_from:e
+taskgroup:contest_to:w -> contest:id_from:e
+task:taskgroup_to:w -> taskgroup:id_from:e
+grade:session_to:w -> session:id_from:e
+grade:taskgroup_to:w -> taskgroup:id_from:e
+participation:session_to:w -> session:id_from:e
+session:managed_by_to:w -> usergroup:id_from:e
+submission:task_to:w -> task:id_from:e
+submission:session_to:w -> session:id_from:e
+
+contest_tags:id_to:w -> contest:id_from:e
+participation:contest_to:w -> contest:id_from:e
+}
